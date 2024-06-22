@@ -63,6 +63,7 @@ class ShiftReduceParser:
         stack = [ 0 ]
         cursor = 0
         output = []
+        operations = []
         count = 1
         while True:
             print(stack)
@@ -76,9 +77,11 @@ class ShiftReduceParser:
                 raise Exception(f'No se esperaba el token {lookahead}')
             
             action, tag = self.action[state, lookahead]
+            operations.append(action)
             if action == ShiftReduceParser.SHIFT:
                 stack.append(lookahead)
                 stack.append(tag)
+            
                 cursor += 1
 
             elif action == ShiftReduceParser.REDUCE:
@@ -92,7 +95,7 @@ class ShiftReduceParser:
                 output.append(production)
 
             elif action == ShiftReduceParser.OK:
-                return output
+                return output, operations
 
             else:
                 raise Exception('Invalid')

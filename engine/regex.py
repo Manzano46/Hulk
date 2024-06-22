@@ -3,7 +3,7 @@ from engine.automaton_operations import automata_union, automata_concatenation, 
 from cmp.pycompiler import Grammar
 from cmp.utils import Token
 from cmp.evaluation import evaluate_parse
-from engine.lr1 import parser_lr1_generator
+from engine.lr1_parser_generator import LR1Parser
 
 class Node:
     def evaluate(self):
@@ -116,10 +116,10 @@ class Regex():
     def __init__(self, regular_exp, skip_whitespaces = False) -> None:
         self._regular_exp = regular_exp
         self._grammar = regex_grammar()
-        self._parser = parser_lr1_generator(self._grammer)
+        self._parser = LR1Parser(self._grammer)
         self._tokens = regex_tokenizer(regular_exp, self._grammer, skip_whitespaces=skip_whitespaces)
-        self._right_parse = self._parser(self._tokens)
-        self._ast = evaluate_parse(self._right_parse, self._tokens)
+        self._right_parse, self._operations = self._parser(self._tokens)
+        self._ast = evaluate_parse(self._right_parse, self._operations, self._tokens)
         self._nfa = self._ast.evaluate()
         self._dfa = nfa_to_dfa(self._nfa)
 
