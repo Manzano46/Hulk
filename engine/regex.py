@@ -2,7 +2,7 @@ from engine.automaton import NFA, DFA, nfa_to_dfa
 from engine.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
 from cmp.pycompiler import Grammar
 from cmp.utils import Token
-from engine.evaluation import evaluate_parse
+from cmp.evaluation import evaluate_parse
 from engine.lr1 import parser_lr1_generator
 
 class Node:
