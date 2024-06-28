@@ -215,10 +215,32 @@ class PrintNode(ExpressionNode):
         self.expr = expr
 
 class AtomicNode(ExpressionNode):
-    def __init__(self, lex):
+    def __init__(self,lex):
         self.lex = lex
+        
 
+class NumberNode(AtomicNode):
+    #def __init__(self,lex):
+        #self.lex = float(lex)
+    pass
 
+class StringNode(AtomicNode):
+    #def __init__(self, lex):
+        #self.lex = str(lex)
+    pass
+
+class BooleanNode(AtomicNode):
+    #def __init__(self, lex):
+        #self.lex = bool(lex)
+    pass
+
+class VariableNode(AtomicNode):
+    def __init__(self, lex, type):
+        self.lex = lex
+        self.type = type
+    
+
+        
 class StrBinaryExpressionNode(BinaryExpressionNode):
     pass
 
@@ -249,9 +271,9 @@ class NegNode(UnaryExpressionNode):
 
 
 class ConcatNode(StrBinaryExpressionNode):
-    def __init__(self, left, right):
+    def __init__(self, left, right,operator):
         super().__init__(left, right)
-        self.operator = 'concat (@, @@)'
+        self.operator = operator
 
 
 class OrNode(BoolBinaryExpressionNode):
@@ -321,9 +343,9 @@ class ModNode(ArithmeticExpressionNode):
 
 
 class PowNode(ArithmeticExpressionNode):
-    def __init__(self, left, right, operator):
+    def __init__(self, left, right):
         super().__init__(left, right)
-        self.operator = operator
+      
 
 
 class EqualNode(EqualityExpressionNode):
