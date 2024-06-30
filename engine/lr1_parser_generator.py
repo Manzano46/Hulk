@@ -58,6 +58,7 @@ def goto_lr1(items, symbol, firsts=None, just_kernel=False):
 
 from cmp.automata import State, multiline_formatter
 
+'''
 def build_LR1_automaton(G):
     assert len(G.startSymbol.productions) == 1, 'Grammar must be augmented'
     firsts = compute_firsts(G)
@@ -89,6 +90,42 @@ def build_LR1_automaton(G):
 
     automaton.set_formatter(multiline_formatter)
     return automaton
+'''
+
+def build_LR1_automaton(G):
+    assert len(G.startSymbol.productions) == 1, 'Grammar must be augmented'
+
+    firsts = compute_firsts(G)
+    firsts[G.EOF] = {G.EOF}
+
+    start_production = G.startSymbol.productions[0]
+    start_item = Item(start_production, 0, lookaheads=(G.EOF,))
+    start = frozenset([start_item])
+
+    closure = frozenset(closure_lr1(start, firsts))
+    automaton = State(closure, True)
+
+    pending = [closure]
+    visited = {closure: automaton}
+
+    while pending:
+        current = pending.pop()
+        current_state = visited[current]
+
+        for symbol in G.terminals + G.nonTerminals:
+            goto = frozenset(goto_lr1(current, symbol, firsts))
+
+            if len(goto) > 0:
+                if goto not in visited:
+                    visited[goto] = State(goto, True)
+                    pending.append(goto)
+
+                current_state.add_transition(symbol.Name, visited[goto])
+
+    automaton.set_formatter(multiline_formatter)
+    return automaton
+    
+    
 class LR1Parser(ShiftReduceParser):
    def _build_parsing_table(self):
       G = self.G.AugmentedGrammar(True)
