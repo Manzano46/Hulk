@@ -1,5 +1,5 @@
-from engine.lexer_generator import Lexer
-from engine.tokens_type import *
+from engine.Lexer.lexer_generator import Lexer
+from engine.language.tokens_type import *
 
 class HulkLexer(Lexer):
     def __init__(self, table, eof):

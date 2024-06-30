@@ -1,8 +1,8 @@
 from cmp.pycompiler import Grammar
 from cmp.pycompiler import Item
 from cmp.utils import ContainerSet
-from engine.firsts_follows import compute_firsts, compute_local_first
-from engine.shift_reduce_parser_generator import ShiftReduceParser
+from engine.Parser.firsts_follows import compute_firsts, compute_local_first
+from engine.Parser.shift_reduce_parser_generator import ShiftReduceParser
 from pandas import DataFrame
 
 def expand(item, firsts):
