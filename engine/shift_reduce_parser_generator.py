@@ -9,56 +9,55 @@ class ShiftReduceParser:
     SHIFT = 'SHIFT'
     REDUCE = 'REDUCE'
     OK = 'OK'
-    
+
     def __init__(self, G, verbose=False):
         self.G = G
         self.verbose = verbose
         self.action = {}
         self.goto = {}
         self._build_parsing_table()
-    
+
     def _build_parsing_table(self):
         raise NotImplementedError()
 
-    def __call__(self, w):
-        stack = [ 0 ]
+    def __call__(self, w, get_shift_reduce=False):
+        stack = [0]
         cursor = 0
         output = []
         operations = []
-        count = 1
+
         while True:
-            #print(stack)
             state = stack[-1]
             lookahead = w[cursor]
-            if self.verbose: print(stack, '<---||--->', w[cursor:], count)
-            count+=1
-                
-            #lookahead = lookahead.Name
-            
+
+            if self.verbose:
+                print(stack, '<---||--->', w[cursor:])
+
             if (state, lookahead) not in self.action:
-                raise Exception(f'No se esperaba el token {lookahead}')
-            
-            action, tag = self.action[state, lookahead]
-            if action == ShiftReduceParser.SHIFT:
-                stack.append(lookahead)
-                stack.append(tag)
-                operations.append(action)   
-            
+                print((state, lookahead))
+                print("Error. Aborting...")
+                return None
+
+            action, tag = self.action[(state, lookahead)]
+
+            if action == self.SHIFT:
+                operations.append(self.SHIFT)
+                stack += [lookahead, tag]
                 cursor += 1
-
-            elif action == ShiftReduceParser.REDUCE:
-                #print(tag)
-                left, right = tag
-                for i in right:
-                    stack.pop()
-                new_state = self.goto[stack[-1], left]
-                stack.append(left)
-                stack.append(new_state)
+            elif action == self.REDUCE:
+                operations.append(self.REDUCE)
                 output.append(tag)
-                operations.append(action) 
-
-            elif action == ShiftReduceParser.OK:
-                return output, operations
-
+                head, body = tag
+                for symbol in reversed(body):
+                    stack.pop()
+                    assert stack.pop() == symbol
+                state = stack[-1]
+                goto = self.goto[(state, head)]
+                stack += [head, goto]
+            elif action == self.OK:
+                stack.pop()
+                assert stack.pop() == self.G.startSymbol
+                assert len(stack) == 1
+                return output if not get_shift_reduce else (output, operations)
             else:
-                raise Exception('Invalid')
+                raise Exception('Invalid action!!!')

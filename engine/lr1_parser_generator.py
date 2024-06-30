@@ -59,77 +59,67 @@ def goto_lr1(items, symbol, firsts=None, just_kernel=False):
 from cmp.automata import State, multiline_formatter
 
 def build_LR1_automaton(G):
-  assert len(G.startSymbol.productions)==1,'Grammar must be augmented'
-  firsts=compute_firsts(G)
-  firsts[G.EOF]=ContainerSet(G.EOF)
- 
-  start_production = G.startSymbol.productions[0]
-  start_item = Item(start_production, 0, lookaheads=(G.EOF,))
-  start = frozenset([start_item])
-  
-  clousure = closure_lr1(start, firsts)
-  automaton = State(frozenset(clousure),True)
-  
-  pending = [start]
-  visited = {start: automaton}
-  while pending:
-    current = pending.pop()
-    current_state = visited[current]
-    
-    for symbol in G.terminals + G.nonTerminals:
-      clousure = closure_lr1(current, firsts)
-      goto = goto_lr1(clousure, symbol, just_kernel=True)
-      
-      if not goto:
-        continue
-      try:
-        next_state = visited[goto]
-      except KeyError:
-        clousure = closure_lr1(goto,firsts)
-        next_state = visited[goto] = State(frozenset(clousure), True)
-        pending.append(goto)
-      
-      current_state.add_transition(symbol.Name, next_state)
-  automaton.set_formatter(multiline_formatter)
-  return automaton
+    assert len(G.startSymbol.productions) == 1, 'Grammar must be augmented'
+    firsts = compute_firsts(G)
+    firsts[G.EOF] = ContainerSet(G.EOF)
+    start_production = G.startSymbol.productions[0]
+    start_item = Item(start_production, 0, lookaheads=(G.EOF,))
+    start = frozenset([start_item])
+    clousure = closure_lr1(start, firsts)
+    automaton = State(frozenset(clousure), True)
+    pending = [start]
+    visited = {start: automaton}
 
+    while pending:
+        current = pending.pop()
+        current_state = visited[current]
+        for symbol in G.terminals + G.nonTerminals:
+            goto_clousure = closure_lr1(current, firsts)
+            goto_result = goto_lr1(goto_clousure, symbol, just_kernel=True)
+
+            if not goto_result:
+                continue
+
+            next_state = visited.get(goto_result)
+            if next_state is None:
+                goto_clousure = closure_lr1(goto_result, firsts)
+                next_state = visited[goto_result] = State(frozenset(goto_clousure), True)
+                pending.append(goto_result)
+            current_state.add_transition(symbol.Name, next_state)
+
+    automaton.set_formatter(multiline_formatter)
+    return automaton
 class LR1Parser(ShiftReduceParser):
-    def _build_parsing_table(self):
-        G=self.G.AugmentedGrammar(True)
-        
-        automaton=build_LR1_automaton(G)
-        for i,node in enumerate(automaton):
-            if self.verbose:print(i,'\t','\n\t '.join(str(x)for x in node.state),'\n')
-            node.idx=i
-        
-        for node in automaton:
-            idx=node.idx
-        
-            for item in node.state:
-                if item.IsReduceItem:
-                    production = item.production
-        
-                    if production.Left == G.startSymbol:
-                        self._register(self.action,(idx,G.EOF),(self.OK,None))
-        
-                    else:
-                        for lookahead in item.lookaheads:
-                            self._register(self.action,(idx, lookahead),(self.REDUCE,production))
-        
-                else:
-                    next_symbol = item.NextSymbol
-                    node_transition = node.get(next_symbol.Name).idx
-            
-                    if next_symbol.IsTerminal:
-                        self._register(self.action,(idx, next_symbol),(self.SHIFT, node_transition))
-                
-                    else:
-                        self._register(self.goto,(idx, next_symbol), node_transition)
-            
-    @staticmethod
-    def _register(table, key, value):
-        assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
-        table[key] = value
+   def _build_parsing_table(self):
+      G = self.G.AugmentedGrammar(True)
+      automaton = build_LR1_automaton(G)
+      for idx, node in enumerate(automaton):
+         if self.verbose:
+               print(idx, '\t', '\n\t'.join(str(x) for x in node.state), '\n')
+         node.idx = idx
+      
+      for node in automaton:
+         current_idx = node.idx
+         for item in node.state:
+               if item.IsReduceItem:
+                  production = item.production
+                  if production.Left == G.startSymbol:
+                     self._register(self.action, (current_idx, G.EOF), (self.OK, None))
+                  else:
+                     for lookahead in item.lookaheads:
+                           self._register(self.action, (current_idx, lookahead), (self.REDUCE, production))
+               else:
+                  next_symbol = item.NextSymbol
+                  node_transition_idx = node.get(next_symbol.Name).idx
+                  if next_symbol.IsTerminal:
+                     self._register(self.action, (current_idx, next_symbol), (self.SHIFT, node_transition_idx))
+                  else:
+                     self._register(self.goto, (current_idx, next_symbol), node_transition_idx)
+
+   @staticmethod
+   def _register(table, key, value):
+      assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
+      table[key] = value
                 
 def encode_value(value):
     try:

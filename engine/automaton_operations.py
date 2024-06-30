@@ -10,38 +10,26 @@ def automata_union(a1, a2):
     final = a2.states + d2
     
     for (origin, symbol), destinations in a1.map.items():
+        transitions[origin + d1, symbol] = [dest + d1 for dest in destinations]
         
-        new_origin = origin + d1 
-        new_destinations = [x + d1 for x in destinations]
-        
-        transitions[(new_origin,symbol)] = new_destinations
-        
+    for (origin, symbol), destinations in a2.map.items():        
+        transitions[origin + d2, symbol] = [dest + d2 for dest in destinations]
 
-    for (origin, symbol), destinations in a2.map.items():
-        
-        new_origin = origin + d2 
-        new_destinations = [x + d2 for x in destinations]
-        
-        transitions[(new_origin,symbol)] = new_destinations
+    trans = transitions.get((start, ''), [])
+    transitions[start, ''] = trans + [d1, d2]
     
-    transitions[(start, '')] = [d1, d2]
-    
-    for state in a1.finals:
-        new_state = state + d1 
-        if (new_state, '') not in transitions:
-            transitions[(new_state,'')] = []
-        transitions[(new_state , '')].extend([final])
-    
-    for state in a2.finals:
-        new_state = state + d1
-        if (new_state, '') not in transitions:
-            transitions[(new_state,'')] = [] 
-        transitions[(new_state , '')].extend([final])
+    for f1 in a1.finals:
+        trans = transitions.get((f1 + d1, ''), [])
+        transitions[f1 + d1, ''] = trans + [final]
+    for f2 in a2.finals:
+        trans = transitions.get((f2 + d2, ''), [])
+        transitions[f2 + d2, ''] = trans + [final]
             
     states = a1.states + a2.states + 2
     finals = { final }
     
     return NFA(states, finals, transitions, start)
+
 
 def automata_concatenation(a1, a2):
     transitions = {}

@@ -127,12 +127,14 @@ class Regex():
       
         self._tokens = regex_tokenizer(regular_exp, self._grammar, skip_whitespaces=skip_whitespaces)
         
-        self._right_parse, self._operations = self._parser([token.token_type for token in self._tokens])
+        self._right_parse, self._operations = self._parser([token.token_type for token in self._tokens], True)
       
         self._ast = evaluate_reverse_parse(self._right_parse, self._operations, self._tokens)
        
         self._nfa = self._ast.evaluate()
+        self._nfa
         self._dfa = nfa_to_dfa(self._nfa)
+        #self._dfa.graph().write_png('dfa.png')
         
        
     def recognize(self, text):

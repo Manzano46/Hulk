@@ -1,15 +1,19 @@
 from engine.hulk_lexer import HulkLexer
 from engine.tokens_type import hulk_tokens
 from engine.grammar import G
+from cmp.automata import State
+from engine.regex import Regex
 
 def pipeline(text):
     
+    expr = '(a|b)*c'
+    regex = Regex(expr)
+    automata = regex.automaton()
+    
     hulk_lexer = HulkLexer(hulk_tokens, G.EOF)
-    #hulk_lexer.automaton.graph().write_png('dfa.png')
-    hulk_lexer.automaton
     tokens = hulk_lexer(text)
     
-    #print(tokens)
+    print(tokens)
     
-text = "print"
+text = "print(\"hola \")"
 print(pipeline(text))
