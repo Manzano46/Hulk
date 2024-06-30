@@ -1,5 +1,5 @@
 from cmp.pycompiler import Grammar
-from ast_nodes import *
+from engine.ast_nodes import *
 G = Grammar()
 
 # Terminals :

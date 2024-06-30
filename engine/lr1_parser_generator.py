@@ -2,7 +2,7 @@ from cmp.pycompiler import Grammar
 from cmp.pycompiler import Item
 from cmp.utils import ContainerSet
 from engine.firsts_follows import compute_firsts, compute_local_first
-from shift_reduce_parser_generator import ShiftReduceParser
+from engine.shift_reduce_parser_generator import ShiftReduceParser
 from pandas import DataFrame
 
 def expand(item, firsts):
@@ -59,78 +59,78 @@ def goto_lr1(items, symbol, firsts=None, just_kernel=False):
 from cmp.automata import State, multiline_formatter
 
 def build_LR1_automaton(G):
-    assert len(G.startSymbol.productions) == 1, 'Grammar must be augmented'
+  assert len(G.startSymbol.productions)==1,'Grammar must be augmented'
+  firsts=compute_firsts(G)
+  firsts[G.EOF]=ContainerSet(G.EOF)
+ 
+  start_production = G.startSymbol.productions[0]
+  start_item = Item(start_production, 0, lookaheads=(G.EOF,))
+  start = frozenset([start_item])
+  
+  clousure = closure_lr1(start, firsts)
+  automaton = State(frozenset(clousure),True)
+  
+  pending = [start]
+  visited = {start: automaton}
+  while pending:
+    current = pending.pop()
+    current_state = visited[current]
     
-    firsts = compute_firsts(G)
-    firsts[G.EOF] = ContainerSet(G.EOF)
-    
-    start_production = G.startSymbol.productions[0]
-    start_item = Item(start_production, 0, lookaheads=(G.EOF,))
-    start = frozenset([start_item])
-    
-    closure = closure_lr1(start, firsts)
-    automaton = State(frozenset(closure), True)
-    
-    pending = [ start ]
-    visited = { start: automaton }
-    
-    while pending:
-        current = pending.pop()
-        current_state = visited[current]
-        
-        for symbol in G.terminals + G.nonTerminals:
-            goto = frozenset(goto_lr1(current_state.state, symbol, firsts))
-            
-            if len(goto):
-                next_state = None
-                try:
-                    next_state = visited[goto]
-                except:
-                    next_state = State(goto, True)
-                    visited[goto] = next_state
-                    pending.append(goto)
-                
-                current_state.add_transition(symbol.Name, next_state)
-            
-        
-    automaton.set_formatter(multiline_formatter)
-    return automaton
+    for symbol in G.terminals + G.nonTerminals:
+      clousure = closure_lr1(current, firsts)
+      goto = goto_lr1(clousure, symbol, just_kernel=True)
+      
+      if not goto:
+        continue
+      try:
+        next_state = visited[goto]
+      except KeyError:
+        clousure = closure_lr1(goto,firsts)
+        next_state = visited[goto] = State(frozenset(clousure), True)
+        pending.append(goto)
+      
+      current_state.add_transition(symbol.Name, next_state)
+  automaton.set_formatter(multiline_formatter)
+  return automaton
 
 class LR1Parser(ShiftReduceParser):
     def _build_parsing_table(self):
-        G = self.G.AugmentedGrammar(True)
+        G=self.G.AugmentedGrammar(True)
         
-        automaton = build_LR1_automaton(G)
-        for i, node in enumerate(automaton):
-            if self.verbose: print(i, '\t', '\n\t '.join(str(x) for x in node.state), '\n')
-            node.idx = i
-
+        automaton=build_LR1_automaton(G)
+        for i,node in enumerate(automaton):
+            if self.verbose:print(i,'\t','\n\t '.join(str(x)for x in node.state),'\n')
+            node.idx=i
+        
         for node in automaton:
-            idx = node.idx
+            idx=node.idx
+        
             for item in node.state:
-                left, right = production = item.production
-                
-                if item.NextSymbol is not None:   
-                    node_transition = node.transitions.get(item.NextSymbol.Name, None)
-                    assert len(node_transition) >= 1, f'No existe la transicion con {item.NextSymbol.Name} desde {idx}'
-                    if item.NextSymbol.IsTerminal:
-                        assert len(node_transition) == 1, 'Automata No Determinista.'
-                        self._register(self.action, (idx, item.NextSymbol), (ShiftReduceParser.SHIFT, node_transition[0].idx))
-                    else:
-                        assert len(node_transition) == 1, 'Automata No Determinista.'
-                        self._register(self.goto, (idx, item.NextSymbol), node_transition[0].idx)
-                else:
-                    if left == G.startSymbol:
-                        self._register(self.action, (idx, G.EOF), (ShiftReduceParser.OK, None))
+                if item.IsReduceItem:
+                    production = item.production
+        
+                    if production.Left == G.startSymbol:
+                        self._register(self.action,(idx,G.EOF),(self.OK,None))
+        
                     else:
                         for lookahead in item.lookaheads:
-                            self._register(self.action, (idx, lookahead), (ShiftReduceParser.REDUCE, item.production))
+                            self._register(self.action,(idx, lookahead),(self.REDUCE,production))
         
+                else:
+                    next_symbol = item.NextSymbol
+                    node_transition = node.get(next_symbol.Name).idx
+            
+                    if next_symbol.IsTerminal:
+                        self._register(self.action,(idx, next_symbol),(self.SHIFT, node_transition))
+                
+                    else:
+                        self._register(self.goto,(idx, next_symbol), node_transition)
+            
     @staticmethod
     def _register(table, key, value):
         assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
         table[key] = value
-        
+                
 def encode_value(value):
     try:
         action, tag = value
