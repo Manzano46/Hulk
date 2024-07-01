@@ -1,9 +1,9 @@
-from engine.automaton import NFA, DFA, nfa_to_dfa
-from engine.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
+from engine.Automaton.automaton import NFA, DFA, nfa_to_dfa
+from engine.Automaton.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
 from cmp.pycompiler import Grammar
 from cmp.utils import Token
-from cmp.evaluation import evaluate_parse
-from engine.lr1_parser_generator import LR1Parser
+from cmp.evaluation import evaluate_reverse_parse
+from engine.Parser.lr1_parser_generator import LR1Parser
 
 class Node:
     def evaluate(self):
@@ -68,8 +68,8 @@ class ConcatNode(BinaryNode):
 def regex_grammar():
     G = Grammar()
 
-    E = G.NonTerminal('E', True)
-    T, F, A, X, Y, Z = G.NonTerminals('T F A X Y Z')
+    S = G.NonTerminal('S', True)
+    E, T, F, A = G.NonTerminals('E T F A')
     pipe, star, opar, cpar, symbol, epsilon = G.Terminals('| * ( ) symbol ε')
     
     G._fixed_tokens = {
@@ -82,47 +82,61 @@ def regex_grammar():
     
     G._symbol = symbol
 
-    E %= T + X, lambda h,s: s[2], None, lambda h,s: s[1]
-    X %= pipe + T + X, lambda h,s: s[3], None, None, lambda h,s: UnionNode(h[0], s[2])
-    X %= G.Epsilon, lambda h,s: h[0]
-    T %= F + Y, lambda h,s: s[2], None, lambda h,s: s[1]
-    Y %= F + Y, lambda h,s: s[2], None, lambda h,s: ConcatNode(h[0], s[1])
-    Y %= G.Epsilon, lambda h,s: h[0]
-    F %= A + Z, lambda h,s: s[2], None, lambda h,s: s[1]
-    Z %= star, lambda h,s: ClosureNode(h[0]), None
-    Z %= G.Epsilon, lambda h,s: h[0]
-    A %= opar + E + cpar, lambda h,s: s[2], None, None, None
-    A %= symbol, lambda h,s: SymbolNode(s[1]), None 
-    A %= epsilon, lambda h,s: EpsilonNode(EPSILON), None
+    S %= E, lambda h,s: s[1]
+    E %= E + pipe + T, lambda h,s: UnionNode(s[1], s[3])
+    E %= T, lambda h,s: s[1]
+    T %= T + F, lambda h,s: ConcatNode(s[1], s[2])
+    T %= F, lambda h,s: s[1]
+    F %= A + star, lambda h,s: ClosureNode(s[1])
+    F %= A, lambda h,s: s[1]
+    A %= opar + E + cpar, lambda h,s: s[2]
+    A %= symbol, lambda h,s: SymbolNode(s[1])
+    A %= epsilon, lambda h,s: EpsilonNode(s[1])
+    
     
     return G
 
-def regex_tokenizer(text, G, skip_whitespaces=True):
+def regex_tokenizer(text, G : Grammar, skip_whitespaces=True):
     tokens = []
-    
+    #print(text, "tokeni")
+    force = False
     for char in text:
         if skip_whitespaces and char.isspace():
             continue
-        # Your code here!!!
-        if char in G._fixed_tokens.keys():
-            tokens.append(G._fixed_tokens[char])
-        else:
-            tokens.append(Token(char, G._symbol))
+        if not force and char == '\\':
+            force  = True
+            continue
+        
+        token = G._fixed_tokens.get(char,None)
+        
+        if token is None or force:
+            token = Token(char, G._symbol)
+            force = False
+        
+        tokens.append(token)
         
     tokens.append(Token('$', G.EOF))
+    #print(tokens)
     return tokens
 
 class Regex():
     def __init__(self, regular_exp, skip_whitespaces = False) -> None:
         self._regular_exp = regular_exp
         self._grammar = regex_grammar()
-        self._parser = LR1Parser(self._grammer)
-        self._tokens = regex_tokenizer(regular_exp, self._grammer, skip_whitespaces=skip_whitespaces)
-        self._right_parse, self._operations = self._parser(self._tokens)
-        self._ast = evaluate_parse(self._right_parse, self._operations, self._tokens)
+        self._parser = LR1Parser(self._grammar)
+      
+        self._tokens = regex_tokenizer(regular_exp, self._grammar, skip_whitespaces=skip_whitespaces)
+        
+        self._right_parse, self._operations = self._parser([token.token_type for token in self._tokens], True)
+      
+        self._ast = evaluate_reverse_parse(self._right_parse, self._operations, self._tokens)
+       
         self._nfa = self._ast.evaluate()
+        self._nfa
         self._dfa = nfa_to_dfa(self._nfa)
-
+        #self._dfa.graph().write_png('dfa.png')
+        
+       
     def recognize(self, text):
         return self._dfa.recognize(text)
 
