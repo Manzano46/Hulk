@@ -1,24 +1,32 @@
-
-class Node:
+from abc import ABC
+class Node(ABC):
     pass
 
 # A program node has declaration and expression nodes
 class ProgramNode(Node):
-    def __init__(self, statements):
-        self.statement = statements
+    def __init__(self, declarations, global_expression):
+        self.declarations = declarations
+        self.expression = global_expression
 
-class StatementNode(Node):
+        
+class DeclarationNode(Node,ABC):
     pass
         
-class DeclarationNode(StatementNode):
-    pass
-        
-class ExpressionNode(StatementNode):
+class ExpressionNode(Node,ABC):
     pass
 
+class AtomicNode(ExpressionNode):
+    def __init__(self,lex):
+        self.lex = lex
+        
+class VariableNode(AtomicNode):
+    def __init__(self, lex, type):
+        self.lex = lex
+        self.type = type
+    
 # A declaration node can be a function declaration, a type declaration or a protocol declaration
 class FunctionDeclarationNode(DeclarationNode):
-    def __init__(self, idx, params, expr, return_type=None):
+    def __init__(self, idx:str, params:list[VariableNode], expr:ExpressionNode, return_type=None):
         super().__init__()
         if len(params) > 0:
             self.params = params
@@ -28,22 +36,52 @@ class FunctionDeclarationNode(DeclarationNode):
         self.expr = expr
         self.return_type = return_type
 
+class MethodDeclarationNode(DeclarationNode):
+    def __init__(self, idx:str, params:list[VariableNode], expr:ExpressionNode, return_type=None):
+        super().__init__()
+        if len(params) > 0:
+            self.params = params
+        else:
+            self.params = []
+        self.name = idx
+        self.expr = expr
+        self.return_type = return_type
+
+
+class MethodSignatureDeclarationNode(DeclarationNode):
+    def __init__(self, idx:str, params:list[VariableNode], return_type):
+        super().__init__()
+        if len(params) > 0:
+            self.params = params
+        else:
+            self.params = []
+        self.name = idx
+        self.return_type = return_type
+
+class AttributeDeclarationNode(DeclarationNode):
+    def __init__(self, idx:str, expr:ExpressionNode, attribute_type=None):
+        super().__init__()
+        self.name = idx
+        self.expr = expr
+        self.attribute_type = attribute_type
+
 class TypeDeclarationNode(DeclarationNode):
-    def __init__(self, idx, params, body, parent=None, parent_args=None):
+    def __init__(self, idx:str, params:list[VariableNode], body, parent=None, parent_args=None):
         super().__init__()
         if len(params) > 0:
             self.params = params
         else :
             self.params = []
             
-        self.idx = idx
-        self.methods = [method for method in body if isinstance(method, MethodDeclarationNode)]
-        self.attributes = [attribute for attribute in body if isinstance(attribute, AttributeDeclarationNode)]
+        self.name = idx
+        self.methods = {(method.name,method) for method in body if isinstance(method, MethodDeclarationNode)}
+        self.attributes = {(attribute.name,attribute) for attribute in body if isinstance(attribute, AttributeDeclarationNode)}
         self.parent = parent
         self.parent_args = parent_args
 
+
 class ProtocolDeclarationNode(DeclarationNode):
-    def __init__(self, idx, methods_signature, parent):
+    def __init__(self, idx:str, methods_signature:list[MethodSignatureDeclarationNode], parent):
         super().__init__()
         self.idx = idx
         self.methods_signature = methods_signature
@@ -51,98 +89,70 @@ class ProtocolDeclarationNode(DeclarationNode):
 
 # Other declarations
 class VarDeclarationNode(DeclarationNode):
-    def __init__(self, idx, expr, var_type=None):
+    def __init__(self, idx:str, expr:ExpressionNode, var_type=None):
         super().__init__()
         self.id = idx
         self.expr = expr
         self.var_type = var_type
 
 
-class MethodDeclarationNode(DeclarationNode):
-    def __init__(self, idx, params, expr, return_type=None):
-        super().__init__()
-        if len(params) > 0:
-            self.params = params
-        else:
-            self.params = []
-        self.id = idx
-        self.expr = expr
-        self.return_type = return_type
-
-
-class MethodSignatureDeclarationNode(DeclarationNode):
-    def __init__(self, idx, params, return_type):
-        super().__init__()
-        if len(params) > 0:
-            self.params = params
-        else:
-            self.params = []
-        self.id = idx
-        self.return_type = return_type
-
-class AttributeDeclarationNode(DeclarationNode):
-    def __init__(self, idx, expr, attribute_type=None):
-        super().__init__()
-        self.id = idx
-        self.expr = expr
-        self.attribute_type = attribute_type
 
 # An expression can be a special expression (let,if,while,for), a block expression or a simple expression
 # Special expressions
 
 class LetInNode(ExpressionNode):
-    def __init__(self, var_declarations, expr):
+    def __init__(self, var_declarations:list[VarDeclarationNode], expr:ExpressionNode):
         super().__init__()
         self.var_declarations = var_declarations
         self.expr = expr
 
 class ConditionalNode(ExpressionNode):
-    def __init__(self, condition_expression_list, else_expr):
+    def __init__(self, condition_expression_list, else_expr:ExpressionNode):
         super().__init__()
         self.condition_expression_list = condition_expression_list
         self.else_expr = else_expr
 
 class WhileNode(ExpressionNode):
-    def __init__(self, condition, expression):
+    def __init__(self, condition, expression:ExpressionNode):
         super().__init__()
         self.condition = condition
         self.expression = expression
 
 class ForNode(ExpressionNode):
-    def __init__(self, var, iterable, expression):
+    def __init__(self, var, iterable, expression:ExpressionNode):
         super().__init__()
         self.var = var
         self.iterable = iterable
         self.expression = expression
 
 class ExpressionBlockNode(ExpressionNode):
-    def __init__(self, expressions):
+    def __init__(self, expressions:list[ExpressionNode]):
         super().__init__()
         self.expressions = expressions
 
 # Simple expressions
 class DestructiveAssignmentNode(ExpressionNode):
-    def __init__(self, var, expr):
+    def __init__(self, var, expr:ExpressionNode):
         super().__init__()
         self.var = var
         self.expr = expr
 
 class IsNode(ExpressionNode):
-    def __init__(self, expression, ttype):
+    def __init__(self, expression:ExpressionNode, ttype):
         super().__init__()
         self.expression = expression
         self.ttype = ttype
 
 
 class AsNode(ExpressionNode):
-    def __init__(self, expression, ttype):
+    def __init__(self, expression:ExpressionNode, ttype):
         super().__init__()
         self.expression = expression
         self.ttype = ttype
 
 
 class FunctionCallNode(ExpressionNode):
-    def __init__(self, idx, args):
+    def __init__(self, idx:str, args:list[ExpressionNode]):
         super().__init__()
         self.idx = idx
         self.args = args
@@ -155,7 +165,7 @@ class IndexingNode(ExpressionNode):
 
 
 class TypeInstantiationNode(ExpressionNode):
-    def __init__(self, idx, args):
+    def __init__(self, idx, args:list[ExpressionNode]):
         super().__init__()
         self.idx = idx
         self.args = args
@@ -179,14 +189,14 @@ class VectorComprehensionNode(ExpressionNode):
         self.iterable = iterable
 
 class MethodCallNode(ExpressionNode):
-    def __init__(self, obj, method, args):
+    def __init__(self, obj, method, args:list[ExpressionNode]):
         super().__init__()
         self.obj = obj
         self.method = method
         self.args = args
 
 class BaseCallNode(ExpressionNode):
-    def __init__(self, args):
+    def __init__(self, args:list[ExpressionNode]):
         super().__init__()
         self.args = args
         self.method_name = None
@@ -195,7 +205,7 @@ class BaseCallNode(ExpressionNode):
 
 
 class BinaryExpressionNode(ExpressionNode):
-    def __init__(self, left, right):
+    def __init__(self, left:ExpressionNode, right:ExpressionNode):
         super().__init__()
         self.left = left
         self.right = right
@@ -211,13 +221,9 @@ class UnaryExpressionNode(ExpressionNode):
 
 
 class PrintNode(ExpressionNode):
-    def __init__(self, expr):
+    def __init__(self, expr:ExpressionNode):
         self.expr = expr
 
-class AtomicNode(ExpressionNode):
-    def __init__(self,lex):
-        self.lex = lex
-        
 
 class NumberNode(AtomicNode):
     #def __init__(self,lex):
@@ -233,12 +239,6 @@ class BooleanNode(AtomicNode):
     #def __init__(self, lex):
         #self.lex = bool(lex)
     pass
-
-class VariableNode(AtomicNode):
-    def __init__(self, lex, type):
-        self.lex = lex
-        self.type = type
-    
 
         
 class StrBinaryExpressionNode(BinaryExpressionNode):
