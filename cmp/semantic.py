@@ -158,6 +158,8 @@ class IntType(Type):
 
 class Context:
     def __init__(self):
+        self.parent: Context = parent
+        self.children = []
         self.types = {}
 
     def create_type(self, name:str):
@@ -171,6 +173,15 @@ class Context:
             return self.types[name]
         except KeyError:
             raise SemanticError(f'Type "{name}" is not defined.')
+        
+    def create_child_context(self):
+        child = Context(self)
+        self.children.append(child)
+
+    def create_type(self, name:str):
+        new_type = Type(self, name)
+        self.types[name] = new_type
+        return new_type
 
     def __str__(self):
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'

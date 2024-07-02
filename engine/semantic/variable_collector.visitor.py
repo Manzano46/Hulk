@@ -1,7 +1,6 @@
 import cmp.visitor as visitor
-from cmp.semantic import SemanticError, Context, Type, Scope
+from cmp.semantic import SemanticError, Context, ErrorType, Scope
 from engine.language.ast_nodes import *
-from context import *
 
 class VarCollector:
     def __init__(self, context: Context, errors = []):
