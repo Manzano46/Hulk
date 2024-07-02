@@ -20,7 +20,7 @@ class AtomicNode(ExpressionNode):
         self.lex = lex
         
 class VariableNode(AtomicNode):
-    def __init__(self, lex, type):
+    def __init__(self, lex, type=None):
         self.lex = lex
         self.type = type
     

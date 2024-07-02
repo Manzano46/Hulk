@@ -1,7 +1,6 @@
 import cmp.visitor as visitor
-from cmp.semantic import SemanticError, ErrorType
-from ast_nodes import *
-from context import *
+from cmp.semantic import *
+from engine.language.ast_nodes import *
 
 ############-------------Funciones-----------------##################
 # Todas las funciones deben estar definidas antes de la expresion global final, todas viven en un espacio de 
@@ -36,7 +35,7 @@ class TypeCollector(object):
     @visitor.when(ProgramNode)
     def visit(self, node : ProgramNode):
         self.context = Context()
-        self.context.types = {'int' : TypeInfo('int'), 'void' : TypeInfo('void')}
+        self.context.types = {'int' : IntType(), 'void' : VoidType()}
         
         for declaration in node.declarations:
             self.visit(declaration)
@@ -138,4 +137,5 @@ class TypeBuilder:
         except SemanticError as e:
             self.errors.append(e.text)
 
-    
+
+# Let's check if the types are correctly used
