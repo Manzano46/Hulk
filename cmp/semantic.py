@@ -163,6 +163,9 @@ class ErrorType(Type):
 
     def __eq__(self, other):
         return isinstance(other, Type)
+    
+    def is_error(self):
+        return True
 
 class VoidType(Type):
     def __init__(self):
@@ -188,6 +191,9 @@ class Context:
     def __init__(self):
         self.types = {}
         self.protocols = {}
+        self.parent: Context = None
+        self.children = []
+     
 
     def create_type(self, name:str):
         if name in self.types:
@@ -205,6 +211,16 @@ class Context:
         if name in self.protocols:
             raise SemanticError(f'Protocol "{name}" already in context.')
         protocolx = self.protocols[name] = Protocol(name)
+        return protocolx
+    
+    def create_child_context(self):
+        child = Context(self)
+        self.children.append(child)
+
+    def create_type(self, name:str):
+        new_type = Type(self, name)
+        self.types[name] = new_type
+        return new_type
 
     def __str__(self):
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
