@@ -1,6 +1,6 @@
 import cmp.visitor as visitor
-from cmp.semantic import SemanticError, ErrorType
-from ast_nodes import *
+from cmp.semantic import SemanticError
+from engine.language.ast_nodes import *
 from context import *
 
 ############-------------Funciones-----------------##################
@@ -138,4 +138,3 @@ class TypeBuilder:
         except SemanticError as e:
             self.errors.append(e.text)
 
-    

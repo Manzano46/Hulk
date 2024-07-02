@@ -1,6 +1,7 @@
 from abc import ABC
 class Node(ABC):
-    pass
+    def __init__(self):
+        self.scope = None
 
 # A program node has declaration and expression nodes
 class ProgramNode(Node):
