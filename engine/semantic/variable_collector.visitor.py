@@ -1,5 +1,5 @@
 import cmp.visitor as visitor
-from cmp.semantic import SemanticError, Context, ErrorType, Scope
+from cmp.semantic import SemanticError, Context, ErrorType, Scope, UnknowType
 from engine.language.ast_nodes import *
 
 class VarCollector:
@@ -87,7 +87,7 @@ class VarCollector:
     @visitor.when(LetInNode)
     def visit(self, node, scope):
         node.scope = scope
-        for declaration in node.declarations:
+        for declaration in node.var_declarations:
             self.visit(declaration, scope)
 
         self.visit(node.body, scope.create_child())
