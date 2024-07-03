@@ -34,6 +34,7 @@ class Method:
             other.return_type == self.return_type and \
             other.param_types == self.param_types
 
+
 class Protocol:
     def __init__(self,name:str):
         self.name = name
@@ -64,6 +65,22 @@ class Protocol:
         self.methods.append(method)
         return method
 
+class ErrorProtocol(Protocol):
+    def __init__(self):
+        Protocol.__init__(self, '<error>')
+
+    def conforms_to(self, other):
+        return True
+
+    def bypass(self):
+        return True
+
+    def __eq__(self, other):
+        return isinstance(other, Protocol)
+    
+    def is_error(self):
+        return True
+
 
 class Type:
     def __init__(self, name:str):
@@ -71,6 +88,8 @@ class Type:
         self.attributes = []
         self.methods = []
         self.parent = None
+        self.params = []
+        self.params_type = []
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -186,6 +205,13 @@ class IntType(Type):
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
+    
+class BooleanType(Type):
+    def __init__(self):
+        Type.__init__(self, 'bool')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, BooleanType)
 
 class Context:
     def __init__(self):
@@ -193,8 +219,8 @@ class Context:
         self.protocols = {}
         self.parent: Context = None
         self.children = []
+        self.functions = {}
      
-
     def create_type(self, name:str):
         if name in self.types:
             raise SemanticError(f'Type with the same name ({name}) already in context.')
@@ -207,20 +233,46 @@ class Context:
         except KeyError:
             raise SemanticError(f'Type "{name}" is not defined.')
         
+    def get_type_or_protocol(self, name:str):
+        try:
+            type_or_protocol = self.get_type(name)
+        except :
+            try:
+                type_or_protocol = self.get_protocol(name)
+            except SemanticError as e:
+                self.errors.append(e.text)
+                type_or_protocol = ErrorType()
+        return type_or_protocol
+        
     def create_protocol(self, name:str):
         if name in self.protocols:
             raise SemanticError(f'Protocol "{name}" already in context.')
         protocolx = self.protocols[name] = Protocol(name)
         return protocolx
     
+    def get_protocol(self, name:str):
+        try:
+            return self.protocols[name]
+        except KeyError:
+            raise SemanticError(f'Protocol "{name}" is not defined.')
+        
+    def create_function(self, name:str, params:list, params_type:list, return_type):
+        if name in self.functions:
+            raise SemanticError(f'Function "{name}" already in context.')
+        functionx = self.functions[name] = Method(name, params, params_type, return_type)
+        return functionx
+    
+    def get_function(self, name:str):
+        try:
+            return self.functions[name]
+        except KeyError:
+            raise SemanticError(f'Function "{name}" is not defined.')
+        
+    
     def create_child_context(self):
         child = Context(self)
         self.children.append(child)
 
-    def create_type(self, name:str):
-        new_type = Type(self, name)
-        self.types[name] = new_type
-        return new_type
 
     def __str__(self):
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'

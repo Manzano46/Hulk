@@ -26,6 +26,9 @@ class TypeCollector(object):
 
         boolean_type = self.context.create_type('Boolean')
         boolean_type.parent = object_type
+
+        iterable_protocol = self.context.create_protocol('Iterable')
+        iterable_protocol.parent = object_type
         
         for declaration in node.declarations:
             self.visit(declaration)
@@ -41,6 +44,6 @@ class TypeCollector(object):
     @visitor.when(ProtocolDeclarationNode)
     def visit(self, node):
         try:
-            self.context.create_protocol(node.idx, node)
+            self.context.create_protocol(node.idx)
         except SemanticError as e:
             self.errors.append(e.text)

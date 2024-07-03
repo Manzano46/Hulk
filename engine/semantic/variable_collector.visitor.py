@@ -31,7 +31,12 @@ class VarCollector:
         if self.current_type.is_error():
             return
         
-        #Falta manipular params
+        for param in node.params:
+            if param.type == None:
+                scope.define_variable(param.lex, UnknowType())
+            else:
+                scope.define_variable(param.lex, param.type)
+
         scope.define_variable('self', self.current_type)
 
         for attribute in node.attributes:
@@ -126,7 +131,7 @@ class VarCollector:
         node.scope = scope
         expr_scope = scope.create_child()
 
-        expr_scope.define_variable(node.var, AutoType(), is_parameter=True)
+        expr_scope.define_variable(node.var, UnknowType(), is_parameter=True)
 
         self.visit(node.iterable, scope.create_child())
         self.visit(node.expression, expr_scope)
@@ -182,7 +187,7 @@ class VarCollector:
         node.scope = scope
 
         selector_scope = scope.create_child()
-        selector_scope.define_variable(node.var, AutoType(), is_parameter=True)
+        selector_scope.define_variable(node.var, UnknowType(), is_parameter=True)
         self.visit(node.selector, selector_scope)
 
         self.visit(node.iterable, scope.create_child())
