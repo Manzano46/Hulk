@@ -9,8 +9,8 @@ class SemanticError(Exception):
 
 class Attribute:
     def __init__(self, name, typex):
-        self.name = name
-        self.type = typex
+        self.name: str = name
+        self.type: Type = typex
 
     def __str__(self):
         return f'[attrib] {self.name} : {self.type.name};'
@@ -70,7 +70,7 @@ class Type:
         self.name = name
         self.attributes = []
         self.methods = []
-        self.parent = None
+        self.parent: Type = None
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -150,6 +150,12 @@ class Type:
 
     def __repr__(self):
         return str(self)
+    
+    def is_error(self):
+        return False
+    
+    def is_unknow(self) -> bool:
+        return False
 
 class ErrorType(Type):
     def __init__(self):
@@ -166,6 +172,17 @@ class ErrorType(Type):
     
     def is_error(self):
         return True
+    
+class UnknowType(Type):
+    def __init__(self):
+        Type.__init__(self, '<unknow>')
+
+    def __eq__(self, other):
+        return isinstance(other, UnknowType) or other.name == self.name
+    
+    def is_unknow(self):
+        return True
+    
 
 class VoidType(Type):
     def __init__(self):
@@ -179,6 +196,13 @@ class VoidType(Type):
 
     def __eq__(self, other):
         return isinstance(other, VoidType)
+    
+class ObjectType(Type):
+    def __init__(self):
+        super().__init__('Object')
+
+    def __eq__(self, other):
+        return isinstance(other, ObjectType) or other.name == self.name
 
 class IntType(Type):
     def __init__(self):
@@ -186,6 +210,27 @@ class IntType(Type):
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
+
+class VectorType(Type):
+    def __init__(self, type) -> None:
+        super().__init__(f'{type.name}[]')
+        self.set_parent(ObjectType())
+        self.define_method('current', [], [], type)
+
+    def get_element_type(self):
+        return self.get_method('current').return_type
+
+    def conforms_to(self, other):
+        if not isinstance(other, VectorType):
+            return super().conforms_to(other)
+        
+        self_elem_type = self.get_element_type()
+        other_elem_type = other.get_element_type()
+
+        return self_elem_type.conforms_to(other_elem_type)
+
+    def __eq__(self, other):
+        return isinstance(other, VectorType) or other.name == self.name
 
 class Context:
     def __init__(self):
