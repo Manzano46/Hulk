@@ -108,7 +108,7 @@ class LetInNode(ExpressionNode):
         self.expr = expr
 
 class ConditionalNode(ExpressionNode):
-    def __init__(self, condition_expression_list, else_expr:ExpressionNode):
+    def __init__(self, condition_expression_list: list[tuple], else_expr:ExpressionNode):
         super().__init__()
         self.condition_expression_list = condition_expression_list
         self.else_expr = else_expr

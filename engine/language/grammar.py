@@ -188,10 +188,10 @@ assignment_list %= assignment, lambda h,s : [s[1]] #         assignment_list -> 
 assignment_list %= assignment + comma + assignment_list, lambda h,s : [s[1]] + s[3] # | var = expression, var = expression ...
 
 # Conditional --------------------------------------------------------------------------------
-if_exp %= if_ + opar + expr + cpar + expr + else_ + expr, lambda h,s : ConditionalNode((s[3],s[5]), s[7]) #             if_exp -> if (expression) expression else expression
-if_exp %= if_ + opar + expr + cpar + expr + elif_exp + else_ + expr, lambda h,s : ConditionalNode((s[3],s[5]) + s[6], s[8]) #   | if (expression) expression elif ...  else expression
-elif_exp %= elif_ + opar + expr + cpar + expr, lambda h,s : (s[3],s[5]) #     elif_expression -> elif (expression) expression
-elif_exp %= elif_ + opar + expr + cpar + expr + elif_exp, lambda h,s : ((s[3],s[5]) + s[6]) #  | elif (expression) expression elif ...
+if_exp %= if_ + opar + expr + cpar + expr + else_ + expr, lambda h,s : ConditionalNode([(s[3],s[5])], s[7]) #             if_exp -> if (expression) expression else expression
+if_exp %= if_ + opar + expr + cpar + expr + elif_exp + else_ + expr, lambda h,s : ConditionalNode([(s[3],s[5])] + s[6], s[8]) #   | if (expression) expression elif ...  else expression
+elif_exp %= elif_ + opar + expr + cpar + expr, lambda h,s : [(s[3],s[5])] #     elif_expression -> elif (expression) expression
+elif_exp %= elif_ + opar + expr + cpar + expr + elif_exp, lambda h,s : ([(s[3],s[5])] + s[6]) #  | elif (expression) expression elif ...
 
 # Loop ---------------------------------------------------------------------------------------
 loop_exp %= while_ + opar + expr + cpar + expr, lambda h,s : WhileNode(s[3], s[5]) # loop expression -> while (boolean_exp) expression

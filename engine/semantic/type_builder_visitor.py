@@ -51,7 +51,7 @@ class TypeBuilder:
     @visitor.when(AttributeDeclarationNode)
     def visit(self, node):
         if node.attribute_type is None:
-            attr_type = Unknow()
+            attr_type = UnknowType()
         else:
             try:
                 attr_type = self.context.get_type_or_protocol(node.attribute_type)
@@ -76,7 +76,7 @@ class TypeBuilder:
                 params_names.append(param.lex)
                 continue
             if param.type is None :
-                param_type = Unknow()
+                param_type = UnknowType()
             else:
                 try:
                     param_type = self.context.get_type_or_protocol(param.type)
@@ -88,7 +88,7 @@ class TypeBuilder:
             params_types.append(param_type)
 
         if node.return_type is None:
-            return_type = Unknow() 
+            return_type = UnknowType() 
         else : 
             try:
                 return_type = self.context.get_type_or_protocol(node.return_type)
@@ -102,7 +102,7 @@ class TypeBuilder:
             self.errors.append(e.text)
 
     @visitor.when(ProtocolDeclarationNode)
-    def visit_protocol(self, node):
+    def visit(self, node):
         try:
             self.current_protocol = self.context.get_protocol(node.idx)
         except SemanticError as e:
@@ -124,7 +124,7 @@ class TypeBuilder:
             self.visit(method)
 
     @visitor.when(MethodSignatureDeclarationNode)
-    def visit_method_signature(self, node):
+    def visit(self, node):
         params_names = []
         params_types = []
         
@@ -162,16 +162,17 @@ class TypeBuilder:
         for param in node.params:
             params.append(param.lex)
             if param.type is None : 
-                params_type.append(Unknow())
+                params_type.append(UnknowType())
+                
             else : 
                 try:
                     param_type = self.context.get_type_or_protocol(param.type)
                 except SemanticError as e:
                     param_type = ErrorType()
                     self.errors.append(e.text)
-            params_type.append(param_type)
+                params_type.append(param_type)
         
-        self.context.create_function(node.idx, params, params_type, node.return_type)
+        self.context.create_function(node.id, params, params_type, node.return_type)
     
 
             

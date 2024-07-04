@@ -50,7 +50,7 @@ class TypeInferer(object):
             local_var = node.scope.find_variable(param_name)
             local_var.type = param_type
             # Check if we could infer the param type in the body
-            if param_type.is_unknown and local_var.is_parameter and local_var.inferred_types:
+            if param_type.is_unknown and local_var.is_param and local_var.inferred_types:
                 try:
                     new_type = types.get_most_specialized_type(local_var.inferred_types, var_name=param_name)
                 except SemanticError as e:
@@ -170,9 +170,46 @@ class TypeInferer(object):
     
     
 
+    @visitor.when(VectorInitializationNode)
+    def visit(self, node):
+        elements_types = [self.visit(element) for element in node.elements]
+        lca: Type = get_lca(elements_types)
 
+        if lca.is_error():
+            return ErrorType()
+        
+        elif lca.is_unknow():
+            return UnknowType()
 
+        return VectorType(lca)
 
+    @visitor.when(VectorComprehensionNode)
+    def visit(self, node):
+        ttype = self.visit(node.iterable)
+        iterable_protocol = self.context.get_protocol('Iterable')
+
+        selector_scope = node.selector.scope
+        variable = selector_scope.find_variable(node.var)
+
+        if ttype.is_unknown():
+            variable.type = UnknowType()
+
+        elif ttype.conforms_to(iterable_protocol):
+            element_type = ttype.get_method('current').return_type
+            variable.type = element_type
+
+        else:
+            variable.type = ErrorType()
+
+        return_type = self.visit(node.selector)
+
+        if return_type.is_error():
+            return ErrorType()
+        
+        elif return_type.is_unknow():
+            return UnknowType()
+
+        return VectorType(return_type)
 
     @visitor.when(IndexingNode)
     def visit(self, node):

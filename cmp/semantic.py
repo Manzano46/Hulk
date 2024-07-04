@@ -285,7 +285,7 @@ class Context:
             try:
                 type_or_protocol = self.get_protocol(name)
             except SemanticError as e:
-                self.errors.append(e.text)
+                # self.errors.append(e.text)
                 type_or_protocol = ErrorType()
         return type_or_protocol
         
@@ -326,9 +326,10 @@ class Context:
         return str(self)
 
 class VariableInfo:
-    def __init__(self, name, vtype):
+    def __init__(self, name, vtype, is_param):
         self.name = name
         self.type = vtype
+        self.is_param = is_param
 
 class Scope:
     def __init__(self, parent=None):
@@ -345,8 +346,8 @@ class Scope:
         self.children.append(child)
         return child
 
-    def define_variable(self, vname, vtype):
-        info = VariableInfo(vname, vtype)
+    def define_variable(self, vname, vtype, is_param=False):
+        info = VariableInfo(vname, vtype, is_param)
         self.locals.append(info)
         return info
 
