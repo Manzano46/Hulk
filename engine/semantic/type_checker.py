@@ -88,7 +88,7 @@ class TypeChecker(object):
 
         try:
             parent_method = self.current_type.parent.get_method(node.name)
-        except SemanticError:
+        except SemanticError.UNDEFINED%('method', node.name):
             return return_type
 
         error_text = SemanticError.WRONG_SIGNATURE % self.current_method.name
@@ -156,7 +156,7 @@ class TypeChecker(object):
         old_type = self.visit(node.var)
 
         if old_type.name == 'Self':
-            self.errors.append(SemanticError(SemanticError.SELF_IS_READONLY))
+            self.errors.append(SemanticError.SELF_IS_READONLY)
             return ErrorType()
 
         if not new_type.conforms_to(old_type):
@@ -208,8 +208,8 @@ class TypeChecker(object):
 
         try:
             function = self.context.get_function(node.idx)
-        except SemanticError as e:
-            self.errors.append(e)
+        except SemanticError.UNDEFINED%('function', node.idx) as e:
+            self.errors.append(SemanticError(e))
             for arg in node.args:
                 self.visit(arg)
             return ErrorType()
@@ -241,8 +241,8 @@ class TypeChecker(object):
                 method = self.current_type.get_method(node.method)
             else:
                 method = obj_type.get_method(node.method)
-        except SemanticError as e:
-            self.errors.append(e)
+        except SemanticError.UNDEFINED%('method', node.method) as e:
+            self.errors.append(SemanticError(e))
             for arg in node.args:
                 self.visit(arg)
             return ErrorType()
@@ -272,8 +272,7 @@ class TypeChecker(object):
             method = self.current_type.parent.get_method(self.current_method.name)
             node.method_name = self.current_method.name
             node.parent_type = self.current_type.parent
-        except SemanticError:
-            error_text = SemanticError.METHOD_NOT_DEFINED % self.current_method.name
+        except SemanticError.UNDEFINED%('method', self.current_method.name) as error_text:
             self.errors.append(SemanticError(error_text))
             for arg in node.args:
                 self.visit(arg)
@@ -305,8 +304,8 @@ class TypeChecker(object):
             try:
                 attr = self.current_type.get_attribute(node.attribute)
                 return attr.type
-            except SemanticError as e:
-                self.errors.append(e)
+            except SemanticError.UNDEFINED % ('attribute', node.attribute) as e:
+                self.errors.append(SemanticError(e))
                 return ErrorType()
         else:
             self.errors.append(SemanticError("Cannot access an attribute from a non-self object"))
@@ -319,8 +318,8 @@ class TypeChecker(object):
 
         try:
             self.context.get_type_or_protocol(node.ttype)
-        except SemanticError as e:
-            self.errors.append(e)
+        except SemanticError.UNDEFINED % ('type or protocol', node.ttype) as e:
+            self.errors.append(SemanticError(e))
 
         return bool_type
 
@@ -330,8 +329,8 @@ class TypeChecker(object):
 
         try:
             cast_type = self.context.get_type_or_protocol(node.ttype)
-        except SemanticError as e:
-            self.errors.append(e)
+        except SemanticError.UNDEFINED % ('type or protocol', node.ttype) as e:
+            self.errors.append(SemanticError(e))
             cast_type = ErrorType()
 
         if not expression_type.conforms_to(cast_type) and not cast_type.conforms_to(expression_type):
@@ -452,7 +451,7 @@ class TypeChecker(object):
         scope = node.scope
 
         if not scope.is_defined(node.lex):
-            error_text = SemanticError.VARIABLE_NOT_DEFINED % node.lex
+            error_text = SemanticError.UNDEFINED % ('variable', node.lex) 
             self.errors.append(SemanticError(error_text))
             return ErrorType()
 
@@ -463,8 +462,8 @@ class TypeChecker(object):
     def visit(self, node: TypeInstantiationNode):
         try:
             ttype = self.context.get_type(node.idx)
-        except SemanticError as e:
-            self.errors.append(e)
+        except SemanticError.UNDEFINED % ('type', node.idx) as e:
+            self.errors.append(SemanticError(e))
             return ErrorType()
 
         args_types = [self.visit(arg) for arg in node.args]
@@ -553,7 +552,7 @@ class TypeChecker(object):
 
         try:
             parent_method: Method = self.current_type.parent.get_method(node.name)
-        except SemanticError:
+        except SemanticError.UNDEFINED % ('method', node.name):
             return return_type
 
         error_text = SemanticError.WRONG_SIGNATURE % self.current_method.name

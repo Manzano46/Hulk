@@ -2,6 +2,7 @@ from engine.Lexer.regex import Regex
 from cmp.automata import State
 from cmp.utils import Token
 import pydot
+from engine.language.errors import * #HulkLexicographicError
 from engine.Automaton.automaton import NFA, DFA, nfa_to_dfa
 from engine.Automaton.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
 class Lexer:
@@ -57,7 +58,9 @@ class Lexer:
 
         while len(text) > 0:
             final, final_lex = self._walk(text)
-            
+            if len(final_lex) == 0 or final is None:
+                raise HulkLexicographicError(HulkLexicographicError.INVALID_CARATER % (row, column), row, column)
+
             n, token_type = min(final.tag)
             
             yield final_lex, token_type, row, column

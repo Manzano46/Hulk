@@ -1,5 +1,6 @@
 from engine.Lexer.lexer_generator import Lexer
 from engine.language.tokens_type import *
+from engine.language.errors import * #HulkLexicographicError
 
 class HulkLexer(Lexer):
     def __init__(self, table, eof):
@@ -14,5 +15,5 @@ class HulkLexer(Lexer):
                                                     TokenType.STRING_INF]]
         for tk in tokens:
             if tk.token_type == TokenType.STRING_INF:
-                raise "string sin completar"
+                raise HulkLexicographicError(HulkLexicographicError.STRING_INF % (tk.row, tk.column),tk.row, tk.column)
         return filtered_tokens

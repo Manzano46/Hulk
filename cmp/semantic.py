@@ -6,6 +6,23 @@ class SemanticError(Exception):
     @property
     def text(self):
         return self.args[0]
+    
+    INVALID_NAME = 'The \'%s\' named : \'%s\' already exist in scope.'
+    UNDEFINED = 'The \'%s\' named : \'%s\' is not defined.'
+    DOUBLE_INHERITANCE = 'The \'%s\' named : \'%s\' already has a parent assigned.'
+    WRONG_SIGNATURE = 'Method \'%s\' already defined in an ancestor with a different signature.'
+    SELF_IS_READONLY = 'Variable "self" is read-only.'
+    INCOMPATIBLE_TYPES = 'Cannot convert \'%s\' into \'%s\'.'
+    INVALID_OPERATION = 'Operation \'%s\' is not defined between \'%s\' and \'%s\'.'
+    INVALID_UNARY_OPERATION = 'Operation \'%s\' is not defined for \'%s\'.'
+    INCONSISTENT_USE = 'Inconsistent use of \'%s\'.'
+    EXPECTED_ARGUMENTS = 'Expected %s arguments, but got %s in \'%s\'.'
+    CANNOT_INFER_PARAM_TYPE = 'Cannot infer type of parameter \'%s\' in \'%s\'. Please specify it.'
+    CANNOT_INFER_ATTR_TYPE = 'Cannot infer type of attribute \'%s\'. Please specify it.'
+    CANNOT_INFER_RETURN_TYPE = 'Cannot infer return type of \'%s\'. Please specify it.'
+    CANNOT_INFER_VAR_TYPE = 'Cannot infer type of variable \'%s\'. Please specify it.'
+    BASE_OUTSIDE_METHOD = 'Cannot use "base" outside of a method.'
+    METHOD_NOT_DEFINED = 'Method \'%s\' is not defined in any ancestor.'
 
 class Attribute:
     def __init__(self, name, typex):
@@ -105,7 +122,7 @@ class Type:
 
     def set_parent(self, parent):
         if self.parent is not None:
-            raise SemanticError(f'Parent type is already set for {self.name}.')
+            raise SemanticError.DOUBLE_INHERITANCE%('type', self.name)
         self.parent = parent
 
     def get_attribute(self, name:str):
@@ -280,7 +297,7 @@ class Context:
      
     def create_type(self, name:str):
         if name in self.types:
-            raise SemanticError(f'Type with the same name ({name}) already in context.')
+            raise SemanticError.INVALID_NAME%('type', name)
         typex = self.types[name] = Type(name)
         return typex
 

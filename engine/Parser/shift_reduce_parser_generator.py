@@ -2,6 +2,7 @@ from cmp.pycompiler import Grammar
 from cmp.pycompiler import Item
 from cmp.automata import State, lr0_formatter
 from engine.Parser.firsts_follows import compute_firsts, compute_follows
+from engine.language.errors import *
 
 
 # NOTA: use `symbol.Name` al hacer las transiciones, no directamente `symbol`.
@@ -34,9 +35,7 @@ class ShiftReduceParser:
                 print(stack, '<---||--->', w[cursor:])
 
             if (state, lookahead) not in self.action:
-                print((state, lookahead))
-                print("Error. Aborting...")
-                return None
+                raise HulkLexicographicError.UNSPECTED_TOKEN%(lookahead.lex,lookahead.row,lookahead.column)
 
             action, tag = self.action[(state, lookahead)]
 
@@ -54,10 +53,9 @@ class ShiftReduceParser:
                 state = stack[-1]
                 goto = self.goto[(state, head)]
                 stack += [head, goto]
-            elif action == self.OK:
+            else:
                 stack.pop()
                 assert stack.pop() == self.G.startSymbol
                 assert len(stack) == 1
                 return output if not get_shift_reduce else (output, operations)
-            else:
-                raise Exception('Invalid action!!!')
+            
