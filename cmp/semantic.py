@@ -24,6 +24,7 @@ class Method:
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
+        self.param_vars = []
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -340,7 +341,7 @@ class Context:
         return str(self)
 
 class VariableInfo:
-    def __init__(self, name, vtype, is_param):
+    def __init__(self, name, vtype, is_param = False):
         self.name: str = name
         self.type: Type = vtype
         self.is_param: bool = is_param

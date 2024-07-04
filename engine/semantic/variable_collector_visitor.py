@@ -15,6 +15,7 @@ class VarCollector:
     @visitor.when(ProgramNode)
     def visit(self, node, scope = None):
         scope = Scope()
+        print("VarCollector Visitor")
         node.scope = scope
 
         for declaration in node.declarations:
@@ -58,8 +59,24 @@ class VarCollector:
         for i, param_name in enumerate(method.param_names):
             param_type = method.param_types[i]
             scope.define_variable(param_name, param_type)
+            method.param_vars.append(VariableInfo(param_name, param_type))
 
         self.visit(node.expr, scope.create_child())
+
+    @visitor.when(FunctionDeclarationNode)
+    def visit(self, node: FunctionDeclarationNode, scope: Scope):
+        node.scope = scope
+        print("Function declaration node")
+        function: Method = self.context.get_function(node.id)
+
+        new_scope = scope.create_child()
+
+        for i, param_name in enumerate(function.param_names):
+            param_type = function.param_types[i]
+            new_scope.define_variable(param_name, param_type, is_param=True)
+            function.param_vars.append(VariableInfo(param_name, param_type))
+
+        self.visit(node.expr, new_scope)
 
     @visitor.when(ExpressionBlockNode)
     def visit(self, node, scope):
@@ -70,13 +87,14 @@ class VarCollector:
     
     @visitor.when(VarDeclarationNode)
     def visit(self, node, scope):
+        print("VarDeclaration Node")
         node.scope = scope
         self.visit(node.expr, scope.create_child())
 
         var_type = None
         if node.var_type is not None:
             try:
-                var_type = self.context.get_type_or_protocol(node.var_type)
+                var_type = self.context.get_type_or_protocol(node.id)
             except SemanticError as e:
                 self.errors.append(e)
                 var_type = ErrorType()
@@ -86,6 +104,7 @@ class VarCollector:
 
     @visitor.when(LetInNode)
     def visit(self, node, scope):
+        print("LetIn node")
         node.scope = scope
         for declaration in node.var_declarations:
             self.visit(declaration, scope)
@@ -199,6 +218,8 @@ class VarCollector:
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode, scope: Scope):
+        print("Var node")
+        print(node.lex, scope)
         node.scope = scope
 
     @visitor.when(BooleanNode)

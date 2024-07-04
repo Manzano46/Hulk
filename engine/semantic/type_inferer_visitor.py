@@ -7,7 +7,8 @@ class TypeInferer(object):
     def __init__(self, context, errors=[]):
         self.errors = errors
         self.context = context
-
+        self.current_type = None
+        self.current_method = None
 
     @visitor.on('node')
     def visit(self, node):
