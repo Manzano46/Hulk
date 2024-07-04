@@ -33,6 +33,18 @@ class Method:
         return other.name == self.name and \
             other.return_type == self.return_type and \
             other.param_types == self.param_types
+    
+    def can_substitute_with(self, other):
+        if self.name != other.name:
+            return False
+        if not other.return_type.conforms_to(self.return_type):
+            return False
+        if len(self.param_types) != len(other.param_types):
+            return False
+        for meth_type, impl_type in zip(self.param_types, other.param_types):
+            if not meth_type.conforms_to(impl_type):
+                return False
+        return True
 
 
 class Protocol:
