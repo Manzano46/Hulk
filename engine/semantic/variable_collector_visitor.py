@@ -15,6 +15,7 @@ class VarCollector:
     @visitor.when(ProgramNode)
     def visit(self, node, scope = None):
         scope = Scope()
+        print("VarCollector Visitor")
         node.scope = scope
 
         for declaration in node.declarations:
@@ -43,7 +44,7 @@ class VarCollector:
             self.visit(attribute, scope.create_child())
             
         for method in node.methods:
-            self.visit(method, scope.create_chid())
+            self.visit(method, scope.create_child())
 
     @visitor.when(AttributeDeclarationNode)
     def visit(self, node, scope):
@@ -58,8 +59,24 @@ class VarCollector:
         for i, param_name in enumerate(method.param_names):
             param_type = method.param_types[i]
             scope.define_variable(param_name, param_type)
+            method.param_vars.append(VariableInfo(param_name, param_type))
 
         self.visit(node.expr, scope.create_child())
+
+    @visitor.when(FunctionDeclarationNode)
+    def visit(self, node: FunctionDeclarationNode, scope: Scope):
+        node.scope = scope
+        print("Function declaration node")
+        function: Method = self.context.get_function(node.id)
+
+        new_scope = scope.create_child()
+
+        for i, param_name in enumerate(function.param_names):
+            param_type = function.param_types[i]
+            new_scope.define_variable(param_name, param_type, is_param=True)
+            function.param_vars.append(VariableInfo(param_name, param_type))
+
+        self.visit(node.expr, new_scope)
 
     @visitor.when(ExpressionBlockNode)
     def visit(self, node, scope):
@@ -70,13 +87,14 @@ class VarCollector:
     
     @visitor.when(VarDeclarationNode)
     def visit(self, node, scope):
+        print("VarDeclaration Node")
         node.scope = scope
         self.visit(node.expr, scope.create_child())
 
         var_type = None
         if node.var_type is not None:
             try:
-                var_type = self.context.get_type_or_protocol(node.var_type)
+                var_type = self.context.get_type_or_protocol(node.id)
             except SemanticError as e:
                 self.errors.append(e)
                 var_type = ErrorType()
@@ -86,16 +104,17 @@ class VarCollector:
 
     @visitor.when(LetInNode)
     def visit(self, node, scope):
+        print("LetIn node")
         node.scope = scope
         for declaration in node.var_declarations:
             self.visit(declaration, scope)
 
-        self.visit(node.body, scope.create_child())
+        self.visit(node.expr, scope.create_child())
 
     @visitor.when(DestructiveAssignmentNode)
     def visit(self, node: DestructiveAssignmentNode, scope: Scope):
         node.scope = scope
-        self.visit(node.target, scope.create_child())
+        self.visit(node.var, scope.create_child())
         self.visit(node.expr, scope.create_child())
 
     @visitor.when(BinaryExpressionNode)
@@ -112,13 +131,11 @@ class VarCollector:
     @visitor.when(ConditionalNode)
     def visit(self, node: ConditionalNode, scope: Scope):
         node.scope = scope
-        for condition in node.conditions:
+        for condition,expression in node.condition_expression_list:
             self.visit(condition, scope.create_child())
-
-        for expression in node.expressions:
             self.visit(expression, scope.create_child())
 
-        self.visit(node.default_expr, scope.create_child())
+        self.visit(node.else_expr, scope.create_child())
 
     @visitor.when(WhileNode)
     def visit(self, node: WhileNode, scope: Scope):
@@ -131,7 +148,7 @@ class VarCollector:
         node.scope = scope
         expr_scope = scope.create_child()
 
-        expr_scope.define_variable(node.var, UnknowType(), is_parameter=True)
+        expr_scope.define_variable(node.var, UnknowType(), is_param=True)
 
         self.visit(node.iterable, scope.create_child())
         self.visit(node.expression, expr_scope)
@@ -187,7 +204,7 @@ class VarCollector:
         node.scope = scope
 
         selector_scope = scope.create_child()
-        selector_scope.define_variable(node.var, UnknowType(), is_parameter=True)
+        selector_scope.define_variable(node.var, UnknowType(), is_param=True)
         self.visit(node.selector, selector_scope)
 
         self.visit(node.iterable, scope.create_child())
@@ -201,6 +218,8 @@ class VarCollector:
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode, scope: Scope):
+        print("Var node")
+        print(node.lex, scope)
         node.scope = scope
 
     @visitor.when(BooleanNode)

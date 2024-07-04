@@ -1,4 +1,7 @@
 from abc import ABC
+from cmp.semantic import *
+
+
 class Node(ABC):
     def __init__(self):
         self.scope = None
@@ -6,6 +9,7 @@ class Node(ABC):
 # A program node has declaration and expression nodes
 class ProgramNode(Node):
     def __init__(self, declarations, global_expression):
+        super().__init__()
         self.declarations = declarations
         self.expression = global_expression
 
@@ -22,20 +26,20 @@ class AtomicNode(ExpressionNode):
         
 class VariableNode(AtomicNode):
     def __init__(self, lex, type=None):
-        self.lex = lex
-        self.type = type
+        super().__init__(lex)
+        self.type: Type = type
     
 # A declaration node can be a function declaration, a type declaration or a protocol declaration
 class FunctionDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, params:list[VariableNode], expr:ExpressionNode, return_type=None):
+    def __init__(self, idx:str, params:list[VariableNode], expr:ExpressionNode, return_type: Type=None):
         super().__init__()
         if len(params) > 0:
             self.params = params
         else:
             self.params = []
         self.id = idx
-        self.expr = expr
-        self.return_type = return_type
+        self.expr: ExpressionNode = expr
+        self.return_type: Type = return_type
 
 class MethodDeclarationNode(DeclarationNode):
     def __init__(self, idx:str, params:list[VariableNode], expr:ExpressionNode, return_type=None):
@@ -45,8 +49,8 @@ class MethodDeclarationNode(DeclarationNode):
         else:
             self.params = []
         self.name = idx
-        self.expr = expr
-        self.return_type = return_type
+        self.expr: ExpressionNode = expr
+        self.return_type: Type = return_type
 
 
 class MethodSignatureDeclarationNode(DeclarationNode):
@@ -57,17 +61,17 @@ class MethodSignatureDeclarationNode(DeclarationNode):
         else:
             self.params = []
         self.name = idx
-        self.return_type = return_type
+        self.return_type: Type = return_type
 
 class AttributeDeclarationNode(DeclarationNode):
     def __init__(self, idx:str, expr:ExpressionNode, attribute_type=None):
         super().__init__()
         self.name = idx
-        self.expr = expr
-        self.attribute_type = attribute_type
+        self.expr: ExpressionNode = expr
+        self.attribute_type: Type = attribute_type
 
 class TypeDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, params:list[VariableNode], body, parent=None, parent_args=None):
+    def __init__(self, idx:str, params:list[VariableNode], body, parent=None, parent_args=[]):
         super().__init__()
         if len(params) > 0:
             self.params = params
@@ -77,7 +81,7 @@ class TypeDeclarationNode(DeclarationNode):
         self.name = idx
         self.methods = {(method.name,method) for method in body if isinstance(method, MethodDeclarationNode)}
         self.attributes = {(attribute.name,attribute) for attribute in body if isinstance(attribute, AttributeDeclarationNode)}
-        self.parent = parent
+        self.parent: TypeDeclarationNode | ProtocolDeclarationNode = parent
         self.parent_args = parent_args
 
 
@@ -93,8 +97,8 @@ class VarDeclarationNode(DeclarationNode):
     def __init__(self, idx:str, expr:ExpressionNode, var_type=None):
         super().__init__()
         self.id = idx
-        self.expr = expr
-        self.var_type = var_type
+        self.expr: ExpressionNode = expr
+        self.var_type: Type = var_type
 
 
 
@@ -108,7 +112,7 @@ class LetInNode(ExpressionNode):
         self.expr = expr
 
 class ConditionalNode(ExpressionNode):
-    def __init__(self, condition_expression_list, else_expr:ExpressionNode):
+    def __init__(self, condition_expression_list: list[tuple], else_expr:ExpressionNode):
         super().__init__()
         self.condition_expression_list = condition_expression_list
         self.else_expr = else_expr

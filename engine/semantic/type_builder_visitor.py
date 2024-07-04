@@ -100,7 +100,7 @@ class TypeBuilder:
             self.errors.append(SemanticError(e))
 
     @visitor.when(ProtocolDeclarationNode)
-    def visit_protocol(self, node):
+    def visit(self, node):
         try:
             self.current_protocol = self.context.get_protocol(node.idx)
         except SemanticError.UNDEFINED%('protocol', node.idx) as e:
@@ -122,7 +122,7 @@ class TypeBuilder:
             self.visit(method)
 
     @visitor.when(MethodSignatureDeclarationNode)
-    def visit_method_signature(self, node):
+    def visit(self, node):
         params_names = []
         params_types = []
         
@@ -161,6 +161,7 @@ class TypeBuilder:
             params.append(param.lex)
             if param.type is None : 
                 params_type.append(UnknowType())
+                
             else : 
                 try:
                     param_type = self.context.get_type_or_protocol(param.type)
@@ -169,7 +170,7 @@ class TypeBuilder:
                     self.errors.append(SemanticError(e))
             params_type.append(param_type)
         
-        self.context.create_function(node.idx, params, params_type, node.return_type)
+        self.context.create_function(node.id, params, params_type, node.return_type)
     
 
             

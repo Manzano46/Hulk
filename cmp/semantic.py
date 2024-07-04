@@ -41,6 +41,7 @@ class Method:
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
+        self.param_vars = []
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -286,6 +287,20 @@ class VectorType(Type):
 
     def __eq__(self, other):
         return isinstance(other, VectorType) or other.name == self.name
+    
+class SelfType(Type):
+    def __init__(self, referred_type: Type = None) -> None:
+        super().__init__('Self')
+        self.referred_type = referred_type
+
+    def get_attribute(self, name: str) -> Attribute:
+        if self.referred_type:
+            return self.referred_type.get_attribute(name)
+
+        return super().get_attribute(name)
+
+    def __eq__(self, other):
+        return isinstance(other, SelfType) or other.name == self.name
 
 class Context:
     def __init__(self):
@@ -295,13 +310,13 @@ class Context:
         self.children = []
         self.functions = {}
      
-    def create_type(self, name:str):
+    def create_type(self, name:str) -> Type:
         if name in self.types:
             raise SemanticError.INVALID_NAME%('type', name)
         typex = self.types[name] = Type(name)
         return typex
 
-    def get_type(self, name:str):
+    def get_type(self, name:str) -> Type:
         try:
             return self.types[name]
         except KeyError:
@@ -314,7 +329,7 @@ class Context:
             try:
                 type_or_protocol = self.get_protocol(name)
             except SemanticError as e:
-                self.errors.append(e.text)
+                # self.errors.append(e.text)
                 type_or_protocol = ErrorType()
         return type_or_protocol
         
@@ -355,9 +370,18 @@ class Context:
         return str(self)
 
 class VariableInfo:
-    def __init__(self, name, vtype):
-        self.name = name
-        self.type = vtype
+    def __init__(self, name, vtype, is_param = False):
+        self.name: str = name
+        self.type: Type = vtype
+        self.is_param: bool = is_param
+        self.infered_types: list[Type] = []
+
+    def update_type(self, t: Type):
+        self.type =  t
+        self.infered_types = []
+
+    def infer(self, t: Type):
+        self.infered_types.append()
 
 class Scope:
     def __init__(self, parent=None):
@@ -374,8 +398,8 @@ class Scope:
         self.children.append(child)
         return child
 
-    def define_variable(self, vname, vtype):
-        info = VariableInfo(vname, vtype)
+    def define_variable(self, vname, vtype, is_param=False):
+        info = VariableInfo(vname, vtype, is_param)
         self.locals.append(info)
         return info
 
@@ -387,7 +411,9 @@ class Scope:
             return self.parent.find_variable(vname, self.index) if self.parent is None else None
 
     def is_defined(self, vname):
-        return self.find_variable(vname) is not None
+        aux = self.find_variable(vname)
+        print(vname, aux)
+        return aux is not None
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
