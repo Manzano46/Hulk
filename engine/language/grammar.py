@@ -161,7 +161,7 @@ param %= idx + colon + idx, lambda h,s : VariableNode(s[1],s[3]) #     | name : 
 
 # Types ----------------------------------------------------------------
 type_decl %= type_ + idx + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], [], s[4]) # type_declaration -> type name { assignments and methods}
-type_decl %= type_ + idx + opar + params + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], s[4], s[6]) # type_declaration -> type name (params) { assignments and methods}
+type_decl %= type_ + idx + opar + params + cpar + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], s[4], s[7]) # type_declaration -> type name (params) { assignments and methods}
 type_decl %= type_ + idx + inherits + idx + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], [], s[6], s[4]) # type_declaration -> type name inherits name { assignments and methods}
 type_decl %= type_ + idx + inherits + idx + opar + args + cpar + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], [], s[8], s[4], s[6]) # type_declaration -> type name inherits name (args) { assignments and methods}
 type_decl %= type_ + idx + opar + params + cpar + inherits + idx + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], s[4], s[9], s[7]) # type_declaration -> type name (params) inherits name { assignments and methods}

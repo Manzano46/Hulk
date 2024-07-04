@@ -257,6 +257,20 @@ class VectorType(Type):
 
     def __eq__(self, other):
         return isinstance(other, VectorType) or other.name == self.name
+    
+class SelfType(Type):
+    def __init__(self, referred_type: Type = None) -> None:
+        super().__init__('Self')
+        self.referred_type = referred_type
+
+    def get_attribute(self, name: str) -> Attribute:
+        if self.referred_type:
+            return self.referred_type.get_attribute(name)
+
+        return super().get_attribute(name)
+
+    def __eq__(self, other):
+        return isinstance(other, SelfType) or other.name == self.name
 
 class Context:
     def __init__(self):
@@ -266,13 +280,13 @@ class Context:
         self.children = []
         self.functions = {}
      
-    def create_type(self, name:str):
+    def create_type(self, name:str) -> Type:
         if name in self.types:
             raise SemanticError(f'Type with the same name ({name}) already in context.')
         typex = self.types[name] = Type(name)
         return typex
 
-    def get_type(self, name:str):
+    def get_type(self, name:str) -> Type:
         try:
             return self.types[name]
         except KeyError:
@@ -327,9 +341,17 @@ class Context:
 
 class VariableInfo:
     def __init__(self, name, vtype, is_param):
-        self.name = name
-        self.type = vtype
-        self.is_param = is_param
+        self.name: str = name
+        self.type: Type = vtype
+        self.is_param: bool = is_param
+        self.infered_types: list[Type] = []
+
+    def update_type(self, t: Type):
+        self.type =  t
+        self.infered_types = []
+
+    def infer(self, t: Type):
+        self.infered_types.append()
 
 class Scope:
     def __init__(self, parent=None):
@@ -359,7 +381,9 @@ class Scope:
             return self.parent.find_variable(vname, self.index) if self.parent is None else None
 
     def is_defined(self, vname):
-        return self.find_variable(vname) is not None
+        aux = self.find_variable(vname)
+        print(vname, aux)
+        return aux is not None
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
