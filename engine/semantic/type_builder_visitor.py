@@ -168,7 +168,7 @@ class TypeBuilder:
                 except SemanticError.UNDEFINED%('type or protocol', param.type) as e:
                     param_type = ErrorType()
                     self.errors.append(SemanticError(e))
-            params_type.append(param_type)
+                params_type.append(param_type)
         
         self.context.create_function(node.id, params, params_type, node.return_type)
     

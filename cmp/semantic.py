@@ -6,23 +6,6 @@ class SemanticError(Exception):
     @property
     def text(self):
         return self.args[0]
-    
-    INVALID_NAME = 'The \'%s\' named : \'%s\' already exist in scope.'
-    UNDEFINED = 'The \'%s\' named : \'%s\' is not defined.'
-    DOUBLE_INHERITANCE = 'The \'%s\' named : \'%s\' already has a parent assigned.'
-    WRONG_SIGNATURE = 'Method \'%s\' already defined in an ancestor with a different signature.'
-    SELF_IS_READONLY = 'Variable "self" is read-only.'
-    INCOMPATIBLE_TYPES = 'Cannot convert \'%s\' into \'%s\'.'
-    INVALID_OPERATION = 'Operation \'%s\' is not defined between \'%s\' and \'%s\'.'
-    INVALID_UNARY_OPERATION = 'Operation \'%s\' is not defined for \'%s\'.'
-    INCONSISTENT_USE = 'Inconsistent use of \'%s\'.'
-    EXPECTED_ARGUMENTS = 'Expected %s arguments, but got %s in \'%s\'.'
-    CANNOT_INFER_PARAM_TYPE = 'Cannot infer type of parameter \'%s\' in \'%s\'. Please specify it.'
-    CANNOT_INFER_ATTR_TYPE = 'Cannot infer type of attribute \'%s\'. Please specify it.'
-    CANNOT_INFER_RETURN_TYPE = 'Cannot infer return type of \'%s\'. Please specify it.'
-    CANNOT_INFER_VAR_TYPE = 'Cannot infer type of variable \'%s\'. Please specify it.'
-    BASE_OUTSIDE_METHOD = 'Cannot use "base" outside of a method.'
-    METHOD_NOT_DEFINED = 'Method \'%s\' is not defined in any ancestor.'
 
 class Attribute:
     def __init__(self, name, typex):
@@ -51,18 +34,6 @@ class Method:
         return other.name == self.name and \
             other.return_type == self.return_type and \
             other.param_types == self.param_types
-    
-    def can_substitute_with(self, other):
-        if self.name != other.name:
-            return False
-        if not other.return_type.conforms_to(self.return_type):
-            return False
-        if len(self.param_types) != len(other.param_types):
-            return False
-        for meth_type, impl_type in zip(self.param_types, other.param_types):
-            if not meth_type.conforms_to(impl_type):
-                return False
-        return True
 
 
 class Protocol:
@@ -123,7 +94,7 @@ class Type:
 
     def set_parent(self, parent):
         if self.parent is not None:
-            raise SemanticError.DOUBLE_INHERITANCE%('type', self.name)
+            raise SemanticError(f'Parent type is already set for {self.name}.')
         self.parent = parent
 
     def get_attribute(self, name:str):
@@ -312,7 +283,7 @@ class Context:
      
     def create_type(self, name:str) -> Type:
         if name in self.types:
-            raise SemanticError.INVALID_NAME%('type', name)
+            raise SemanticError(f'Type with the same name ({name}) already in context.')
         typex = self.types[name] = Type(name)
         return typex
 
@@ -323,11 +294,13 @@ class Context:
             raise SemanticError(f'Type "{name}" is not defined.')
         
     def get_type_or_protocol(self, name:str):
+        print("pidiendo typo", name)
         try:
-            type_or_protocol = self.get_type(name)
+            type_or_protocol = self.get_protocol(name)
+
         except :
             try:
-                type_or_protocol = self.get_protocol(name)
+                type_or_protocol = self.get_type(name)
             except SemanticError as e:
                 # self.errors.append(e.text)
                 type_or_protocol = ErrorType()
@@ -381,7 +354,7 @@ class VariableInfo:
         self.infered_types = []
 
     def infer(self, t: Type):
-        self.infered_types.append()
+        self.infered_types.append(t)
 
 class Scope:
     def __init__(self, parent=None):
@@ -392,6 +365,9 @@ class Scope:
 
     def __len__(self):
         return len(self.locals)
+    
+    def __str__(self):
+        return '{\n\t' + '\n\t'.join(y for x in self.locals for y in str(x).split('\n')) + '\n}'
 
     def create_child(self):
         child = Scope(self)
@@ -404,6 +380,7 @@ class Scope:
         return info
 
     def find_variable(self, vname, index=None):
+        print("buscando variable ",vname )
         locals = self.locals if index is None else itt.islice(self.locals, index)
         try:
             return next(x for x in locals if x.name == vname)

@@ -81,6 +81,7 @@ input8 =  '''
 
 
 input9 =  '''
+    function tan(x: Number): Number => sin(x) / cos(x);
     function gcd(a, b) => while (a > 0)
         let m = a % b in {
             b := a;

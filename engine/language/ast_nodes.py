@@ -39,7 +39,7 @@ class FunctionDeclarationNode(DeclarationNode):
             self.params = []
         self.id = idx
         self.expr: ExpressionNode = expr
-        self.return_type: Type = return_type
+        self.return_type: Type = return_type if return_type is not None else UnknowType()
 
 class MethodDeclarationNode(DeclarationNode):
     def __init__(self, idx:str, params:list[VariableNode], expr:ExpressionNode, return_type=None):
