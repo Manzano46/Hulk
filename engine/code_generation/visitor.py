@@ -25,8 +25,8 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.ReturnNode(0))
         self.current_function = None
         
-        for feature, child_scope in node.declarations + [node.expression]:
-            self.visit(feature, child_scope)
+        for feature in node.declarations + [node.expression]:
+            self.visit(feature)
 
         return cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
     
@@ -48,7 +48,41 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
             function_name = self.to_function_name(method.name, xtype.name)
             type_node.methods.append((method.name, function_name))
         
-        for feature, child_scope in node.attributes + node.methods:
-            self.visit(feature, child_scope)
+        # crear un constructor donde se setearan todos los atributos
+        function_name = self.to_function_name('_init_', self.current_type.name)
+        type_node.methods.append(('_init_', function_name))
+        
+        self.current_function : cil.FunctionNode = self.register_function(function_name)
+        
+        param_self = self.register_param('self')
+        
+        # llamar constructor del padre
+        result = self.define_internal_local()
+        self.register_instruction(cil.DynamicCallNode(self.current_type.parent, '_init_', result))
+        
+        for attribute in node.attributes:
+            value = self.visit(attribute)
+            self.register_instruction(cil.SetAttribNode(param_self, attribute.name, value))
+        
+        self.register_instruction(cil.ReturnNode(param_self))
+        self.current_function = None
+        
+        for method in node.methods:
+            self.visit(method)
         
         self.current_type = None
+        
+    @visitor.when(AttributeDeclarationNode)
+    def visit(self, node : AttributeDeclarationNode):
+        ######################################################
+        # node.name -> string
+        # node.expr -> ExpressionNode
+        # node.attribute_type -> Type
+        ######################################################
+        
+        
+        obj = self.register_local(node.name)
+        value = self.visit(node.expr)
+        self.register_instruction(cil.AssignNode(obj, value))
+        
+        return obj

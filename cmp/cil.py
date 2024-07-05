@@ -66,7 +66,10 @@ class GetAttribNode(InstructionNode):
     pass
 
 class SetAttribNode(InstructionNode):
-    pass
+    def __init__(self, obj, attribute, value):
+        self.obj = obj
+        self.attribute = attribute
+        self.value = value
 
 class GetIndexNode(InstructionNode):
     pass
