@@ -141,3 +141,93 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
             
         return self.visit(node.expr)
     
+    @visitor.when(PlusNode)
+    def visit(self, node : PlusNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.PlusNode(result, left, right))
+        
+        return result
+    
+    
+    @visitor.when(MinusNode)
+    def visit(self, node : MinusNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.MinusNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(DivNode)
+    def visit(self, node : DivNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.DivNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(StarNode)
+    def visit(self, node : StarNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.StarNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(PowNode)
+    def visit(self, node : PowNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.PowNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(ModNode)
+    def visit(self, node : ModNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.ModNode(result, left, right))
+        
+        return result

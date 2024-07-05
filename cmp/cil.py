@@ -62,6 +62,12 @@ class StarNode(ArithmeticNode):
 class DivNode(ArithmeticNode):
     pass
 
+class PowNode(ArithmeticNode):
+    pass
+
+class ModNode(ArithmeticNode):
+    pass
+
 class GetAttribNode(InstructionNode):
     pass
 
