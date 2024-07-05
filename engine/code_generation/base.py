@@ -1,5 +1,6 @@
 import cmp.cil as cil
 from cmp.semantic import Scope, VariableInfo
+from cmp.semantic import Context
 
 class BaseHulkToCILVisitor:
     def __init__(self, context):
@@ -9,7 +10,7 @@ class BaseHulkToCILVisitor:
         self.current_type = None
         self.current_method = None
         self.current_function = None
-        self.context = context
+        self.context : Context = context
     
     @property
     def params(self):
