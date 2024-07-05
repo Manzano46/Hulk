@@ -86,3 +86,27 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.AssignNode(obj, value))
         
         return obj
+    
+    @visitor.when(MethodDeclarationNode)
+    def visit(self, node : MethodDeclarationNode):
+        ######################################################
+        # node.name -> string   
+        # node.expr -> ExpressionNode
+        # node.params -> [VariableNode ...]
+        # node.return_type -> Type
+        ######################################################
+    
+        self.current_method : Method = self.current_type.get_method(node.name)
+        
+        function_name = self.to_function_name(node.name, self.current_type.name)
+        
+        self.current_function : cil.FunctionNode = self.register_function(function_name)
+        
+        for param in node.params:
+            self.register_param(param.lex)
+            
+        value = self.visit(node.expr)
+        self.register_instruction(cil.ReturnNode(value))
+        
+        self.current_function = None
+        self.current_method = None
