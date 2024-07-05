@@ -128,3 +128,16 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.AssignNode(obj, value))
         
         return obj
+    
+    @visitor.when(LetInNode)
+    def visit(self, node : LetInNode):
+        ######################################################
+        # node.var_declarations -> [VarDeclarationNode]
+        # node.expr -> ExpressionNode
+        ######################################################
+        
+        for declaration in node.var_declarations:
+            self.visit(declaration)
+            
+        return self.visit(node.expr)
+    
