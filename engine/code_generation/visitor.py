@@ -110,3 +110,21 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         
         self.current_function = None
         self.current_method = None
+        
+    @visitor.when(VarDeclarationNode)
+    def visit(self, node : VarDeclarationNode):
+        ######################################################
+        # node.id -> string   
+        # node.expr -> ExpressionNode
+        # node.var_type -> Type
+        ######################################################
+        
+        obj = self.register_local(node.id)
+        xtype = self.node.find_variable(node.id).type
+        
+        self.register_instruction(cil.AllocateNode(xtype, obj))
+        value = self.visit(node.expr)
+        
+        self.register_instruction(cil.AssignNode(obj, value))
+        
+        return obj
