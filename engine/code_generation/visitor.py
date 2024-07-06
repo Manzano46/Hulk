@@ -264,3 +264,16 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.LoadNode(var, constant))
         
         return var
+    
+    @visitor.when(BooleanNode)
+    def visit(self, node : BooleanNode):
+        ######################################################
+        # node.lex -> string
+        ######################################################
+        
+        if node.lex == 'True':
+            return 1
+        else:
+            return 0
+    
+    
