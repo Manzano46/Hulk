@@ -19,26 +19,33 @@ class TypeBuilder:
     def visit(self, node):
         for declaration in node.declarations:
             self.visit(declaration)
+
+        if self.context.cyclic_type_inheritance():
+            self.errors.append(SemanticError('There is cyclic inheritance of types'))
+
+        if self.context.cyclic_protocol_inheritance():
+            self.errors.append(SemanticError('There is cyclic inheritance of protocols'))
+
         return self.errors, self.context
 
     @visitor.when(TypeDeclarationNode)
     def visit(self, node):
         try:
             self.current_type = self.context.get_type(node.name)
-        except SemanticError.UNDEFINED%('type',node.name) as e:
-            self.errors.append(SemanticError(e))
+        except SemanticError as e:
+            self.errors.append(e)
             self.current_type = ErrorType()
 
         if node.parent != None:
             try:
                 current_parent_type = self.context.get_type(node.parent)
-            except SemanticError.UNDEFINED%('type', node.parent) as e:
-                self.errors.append(SemanticError(e))
+            except SemanticError as e:
+                self.errors.append(e)
                 current_parent_type = ErrorType()
             try:
                 self.current_type.set_parent(current_parent_type)
-            except SemanticError.DOUBLE_INHERITANCE%('type', node.name) as e:
-                self.errors.append(SemanticError(e))
+            except SemanticError as e:
+                self.errors.append(e)
 
         for attribute in node.attributes:
             self.visit(attribute)
@@ -53,14 +60,14 @@ class TypeBuilder:
         else:
             try:
                 attr_type = self.context.get_type_or_protocol(node.attribute_type)
-            except SemanticError.UNDEFINED%('type or protocol', node.attribute_type) as e:
-                self.errors.append(SemanticError(e))
+            except SemanticError as e:
+                self.errors.append(e)
                 attr_type = ErrorType()
             
         try:
             self.current_type.define_attribute(node.name, attr_type)
-        except SemanticError.INVALID_NAME%('attribute', node.name) as e:
-            self.errors.append(SemanticError(e))
+        except SemanticError as e:
+            self.errors.append(e)
     
     @visitor.when(MethodDeclarationNode)
     def visit(self, node):
@@ -78,8 +85,8 @@ class TypeBuilder:
             else:
                 try:
                     param_type = self.context.get_type_or_protocol(param.type)
-                except SemanticError.UNDEFINED%('type or protocol', param.type) as e:
-                    self.errors.append(SemanticError(e))
+                except SemanticError as e:
+                    self.errors.append(e)
                     param_type = ErrorType()
                 
             params_names.append(param.lex)
@@ -90,33 +97,33 @@ class TypeBuilder:
         else : 
             try:
                 return_type = self.context.get_type_or_protocol(node.return_type)
-            except SemanticError.UNDEFINED%('type or protocol', node.return_type) as e:
-                self.errors.append(SemanticError(e))
+            except SemanticError as e:
+                self.errors.append(e)
                 return_type = ErrorType()
 
         try:
             self.current_type.define_method(node.name, params_names, params_types, return_type)
-        except SemanticError.INVALID_NAME%('method', node.name) as e:
-            self.errors.append(SemanticError(e))
+        except SemanticError as e:
+            self.errors.append(e)
 
     @visitor.when(ProtocolDeclarationNode)
     def visit(self, node):
         try:
             self.current_protocol = self.context.get_protocol(node.idx)
-        except SemanticError.UNDEFINED%('protocol', node.idx) as e:
-            self.errors.append(SemanticError(e))
+        except SemanticError as e:
+            self.errors.append(e)
             self.current_protocol = ErrorProtocol()
 
         if node.parent != None:
             try:
                 current_parent_protocol = self.context.get_protocol(node.parent)
-            except SemanticError.UNDEFINED%('protocol', node.parent) as e:
-                self.errors.append(SemanticError(e))
+            except SemanticError as e:
+                self.errors.append(e)
                 current_parent_protocol = ErrorProtocol()
             try:
                 self.current_protocol.set_parent(current_parent_protocol)
-            except SemanticError.DOUBLE_INHERITANCE%('protocol',node.idx) as e:
-                self.errors.append(SemanticError(e))
+            except SemanticError as e:
+                self.errors.append(e)
 
         for method in node.methods_signature:
             self.visit(method)
@@ -135,8 +142,8 @@ class TypeBuilder:
             
             try:
                 param_type = self.context.get_type_or_protocol(param.type)
-            except SemanticError.UNDEFINED%('type or protocol', param.type) as e:
-                self.errors.append(SemanticError(e))
+            except SemanticError as e:
+                self.errors.append(e)
                 param_type = ErrorType()
                 
             params_names.append(param.lex)
@@ -144,14 +151,14 @@ class TypeBuilder:
                 
         try:
             return_type = self.context.get_type_or_protocol(node.return_type)
-        except SemanticError.UNDEFINED%('type or protocol', node.return_type) as e:
-            self.errors.append(SemanticError(e))
+        except SemanticError as e:
+            self.errors.append(e)
             return_type = ErrorType()
 
         try:
             self.current_protocol.define_method(node.name, params_names, params_types, return_type)
-        except SemanticError.INVALID_NAME%('method', node.name) as e:
-            self.errors.append(SemanticError(e))
+        except SemanticError as e:
+            self.errors.append(e)
 
     @visitor.when(FunctionDeclarationNode)
     def visit(self, node):
@@ -161,16 +168,27 @@ class TypeBuilder:
             params.append(param.lex)
             if param.type is None : 
                 params_type.append(UnknowType())
-                
             else : 
                 try:
                     param_type = self.context.get_type_or_protocol(param.type)
-                except SemanticError.UNDEFINED%('type or protocol', param.type) as e:
+                except SemanticError as e:
                     param_type = ErrorType()
-                    self.errors.append(SemanticError(e))
-            params_type.append(param_type)
-        
-        self.context.create_function(node.id, params, params_type, node.return_type)
+                    self.errors.append(e)
+                params_type.append(param_type)
+
+        if node.return_type is None:
+            return_type = UnknowType()
+        else:
+            try:
+                return_type = self.context.get_type_or_protocol(node.return_type)
+            except SemanticError as e:
+                self.errors.append(e)
+                return_type = ErrorType()
+
+        try:
+            self.context.create_function(node.id, params, params_type, return_type)
+        except SemanticError as e:
+            self.errors.append(e)
     
 
             

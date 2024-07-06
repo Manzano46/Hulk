@@ -73,7 +73,7 @@ class Protocol:
 
     def set_parent(self,parent):
         if self.parent is not None:
-            raise SemanticError(f'Parent protocol is already set for {self.name}.')
+            raise SemanticError.DOUBLE_INHERITANCE%('protocol', self.name)
         self.parent = parent
 
     def get_method(self, name:str):
@@ -309,7 +309,7 @@ class Context:
         self.parent: Context = None
         self.children = []
         self.functions = {}
-     
+
     def create_type(self, name:str) -> Type:
         if name in self.types:
             raise SemanticError.INVALID_NAME%('type', name)
@@ -329,7 +329,7 @@ class Context:
             try:
                 type_or_protocol = self.get_protocol(name)
             except SemanticError as e:
-                # self.errors.append(e.text)
+                self.errors.append(e)
                 type_or_protocol = ErrorType()
         return type_or_protocol
         
@@ -368,6 +368,52 @@ class Context:
 
     def __repr__(self):
         return str(self)
+    
+    def cyclic_type_inheritance(self):
+        visited = set()
+        visiting = set()
+        
+        def dfs(node):
+            visiting.add(node)
+            if node.parent is not None:
+                if node.parent in visiting:
+                    return True
+                if node.parent not in visited:
+                    if dfs(node.parent):
+                        return True
+            visiting.remove(node)
+            visited.add(node)
+            return False
+        
+        for name,type in self.types.items():
+            if type not in visited:
+                if dfs(type):
+                    return True
+        
+        return False
+    
+    def cyclic_protocol_inheritance(self):
+        visited = set()
+        visiting = set()
+        
+        def dfs(node):
+            visiting.add(node)
+            if node.parent is not None:
+                if node.parent in visiting:
+                    return True
+                if node.parent not in visited:
+                    if dfs(node.parent):
+                        return True
+            visiting.remove(node)
+            visited.add(node)
+            return False
+        
+        for name,protocol in self.protocols.items():
+            if protocol not in visited:
+                if dfs(protocol):
+                    return True
+        
+        return False
 
 class VariableInfo:
     def __init__(self, name, vtype, is_param = False):
