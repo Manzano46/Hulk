@@ -223,12 +223,12 @@ class TypeInferer(object):
     
     @visitor.when(ConditionalNode)
     def visit(self, node):
-        for cond in node.conditions:
+        for cond,_ in node.condition_expression_list:
             self.visit(cond)
 
-        expr_types = [self.visit(expression) for expression in node.expressions]
+        expr_types = [self.visit(expression) for _,expression in node.condition_expression_list]
 
-        else_type = self.visit(node.default_expr)
+        else_type = self.visit(node.else_expr)
 
         return get_lca(expr_types + [else_type])
 

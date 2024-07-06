@@ -3,7 +3,7 @@ from cmp.semantic import *
 from engine.language.ast_nodes import *
 
 
-def get_lca(*types: Type) -> Type:
+def get_lca(types: list[Type]) -> Type:
     if not types or any(t.is_error() for t in types):
         return ErrorType()
     
