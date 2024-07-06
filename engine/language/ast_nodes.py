@@ -81,7 +81,7 @@ class TypeDeclarationNode(DeclarationNode):
         self.name = idx
         self.methods = {(method.name,method) for method in body if isinstance(method, MethodDeclarationNode)}
         self.attributes = {(attribute.name,attribute) for attribute in body if isinstance(attribute, AttributeDeclarationNode)}
-        self.parent: TypeDeclarationNode | ProtocolDeclarationNode = parent
+        self.parent: TypeDeclarationNode = parent
         self.parent_args = parent_args
 
 

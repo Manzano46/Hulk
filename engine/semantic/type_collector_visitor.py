@@ -66,12 +66,12 @@ class TypeCollector(object):
     def visit(self, node):
         try:
             self.context.create_type(node.name)
-        except SemanticError.INVALID_NAME%('type', node.name) as e:
-            self.errors.append(SemanticError(e))
+        except SemanticError as e:
+            self.errors.append(e)
 
     @visitor.when(ProtocolDeclarationNode)
     def visit(self, node):
         try:
             self.context.create_protocol(node.idx)
-        except SemanticError.INVALID_NAME%('protocol', node.idx) as e:
-            self.errors.append(SemanticError(e))
+        except SemanticError as e:
+            self.errors.append(e)
