@@ -81,6 +81,7 @@ input8 =  '''
 
 
 input9 =  '''
+    function tan(x: Number): Number => sin(x) / cos(x);
     function gcd(a, b) => while (a > 0)
         let m = a % b in {
             b := a;
@@ -89,7 +90,13 @@ input9 =  '''
     print(gcd(4,5));
 '''
 
-test_cases = [input1, input2, input3, input4, input5, input6, input7, input8, input9]
+input10 = '''
+    let a = 1 in {
+        a+2;
+    }
+    '''
+
+test_cases = [input1, input2, input3, input4, input5, input6, input7, input8, input9, input10]
 # function tan(x: Number): Number => sin(x) / cos(x);
 
 

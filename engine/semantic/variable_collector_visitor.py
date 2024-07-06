@@ -91,10 +91,11 @@ class VarCollector:
         node.scope = scope
         self.visit(node.expr, scope.create_child())
 
-        var_type = None
+        var_type = UnknowType()
         if node.var_type is not None:
             try:
-                var_type = self.context.get_type_or_protocol(node.id)
+                var_type = self.context.get_type_or_protocol(node.var_type.name)
+                
             except SemanticError as e:
                 self.errors.append(e)
                 var_type = ErrorType()
@@ -218,8 +219,7 @@ class VarCollector:
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode, scope: Scope):
-        print("Var node")
-        print(node.lex, scope)
+        print("Var node", node.lex)
         node.scope = scope
 
     @visitor.when(BooleanNode)

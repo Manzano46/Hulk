@@ -1,4 +1,4 @@
-from engine.Automaton.automaton import NFA, DFA, nfa_to_dfa
+from engine.automaton.automaton import NFA, DFA, nfa_to_dfa
 from cmp.utils import DisjointSet
 
 def automata_union(a1, a2):

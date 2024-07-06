@@ -51,7 +51,7 @@ class TypeInferer(object):
             local_var = node.scope.find_variable(param_name)
             local_var.type = param_type
             # Check if we could infer the param type in the body
-            if param_type.is_unknown and local_var.is_param and local_var.infered_types:
+            if param_type.is_unknow and local_var.is_param and local_var.infered_types:
                 try:
                     new_type = get_lower_heir(local_var.infered_types, var_name=param_name)
                 except SemanticError as e:
@@ -64,7 +64,7 @@ class TypeInferer(object):
                 local_var.update_type(new_type)
 
             # Check if we could infer the param type in a call
-            if (self.current_type.params_type[i].is_unknown() and self.current_type.param_vars[i].infered_types):
+            if (self.current_type.params_type[i].is_unknow() and self.current_type.param_vars[i].infered_types):
                 new_type = get_lca(self.current_type.param_vars[i].infered_types)
                 self.current_type.params_type[i] = new_type
                 if not new_type.is_unknow():
@@ -145,7 +145,7 @@ class TypeInferer(object):
         return_type: Type = self.visit(node.expr)
         print(return_type)
 
-        if function.return_type.is_unknown() and not function.return_type.is_error() and (
+        if function.return_type.is_unknow() and not function.return_type.is_error() and (
                 return_type.is_unknow() or return_type.is_error()):
             function.return_type = return_type
 
@@ -157,7 +157,7 @@ class TypeInferer(object):
             local_var = expr_scope.find_variable(param_name)
             local_var.type = param_type
             # Check if we could infer the param type in the body
-            if param_type.is_unknow() and local_var.is_parameter and local_var.infered_types:
+            if param_type.is_unknow() and local_var.is_param and local_var.infered_types:
                 try:
                     new_type: Type = get_lower_heir(param_name, local_var.infered_types)
 
@@ -191,9 +191,12 @@ class TypeInferer(object):
         return expr_type
     
     @visitor.when(VarDeclarationNode)
-    def visit(self, node):
+    def visit(self, node: VarDeclarationNode):
+        print("VarDeclaration Node", node.id)
+
         inf_type = self.visit(node.expr)
         var = node.scope.find_variable(node.id)
+        print(var.name, var.type)
         var.type = var.type if not var.type.is_unknow() or var.type.is_error() else inf_type
         return var.type
 
@@ -202,7 +205,7 @@ class TypeInferer(object):
         print("Node Let In")
         for declaration in node.var_declarations:
             self.visit(declaration)
-        return self.visit(node.body)
+        return self.visit(node.expr)
     
     @visitor.when(DestructiveAssignmentNode)
     def visit(self, node):
@@ -589,7 +592,7 @@ class TypeInferer(object):
         selector_scope = node.selector.scope
         variable = selector_scope.find_variable(node.var)
 
-        if ttype.is_unknown():
+        if ttype.is_unknow():
             variable.type = UnknowType()
 
         elif ttype.conforms_to(iterable_protocol):

@@ -7,7 +7,7 @@ def get_lca(*types: Type) -> Type:
     if not types or any(t.is_error() for t in types):
         return ErrorType()
     
-    if any(t.is_unknown() for t in types):
+    if any(t.is_unknow() for t in types):
         return UnknowType()
     
     lca = types[0]

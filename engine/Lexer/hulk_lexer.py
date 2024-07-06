@@ -1,4 +1,4 @@
-from engine.Lexer.lexer_generator import Lexer
+from engine.lexer.lexer_generator import Lexer
 from engine.language.tokens_type import *
 from engine.language.errors import * #HulkLexicographicError
 
