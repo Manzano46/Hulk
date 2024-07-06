@@ -4,6 +4,7 @@ import cmp.visitor as visitor
 from engine.language.ast_nodes import *
 
 class HulkToCILVisitor(BaseHulkToCILVisitor):
+    
     @visitor.on('node')
     def visit(self, node):
         pass
@@ -119,8 +120,10 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         # node.var_type -> Type
         ######################################################
         
-        obj = self.register_local(node.id)
-        xtype = self.node.find_variable(node.id).type
+        var = node.scope.find_variable(node.id)
+        
+        obj = self.register_local(var)
+        xtype = var.type
         
         self.register_instruction(cil.AllocateNode(xtype, obj))
         value = self.visit(node.expr)
@@ -231,3 +234,33 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.ModNode(result, left, right))
         
         return result
+    
+    @visitor.when(NumberNode)
+    def visit(self, node : NumberNode):
+        ######################################################
+        # node.lex -> string
+        ######################################################
+        
+        return node.lex
+    
+    @visitor.when(StringNode)
+    def visit(self, node : StringNode):
+        ######################################################
+        # node.lex -> string
+        ######################################################
+        
+        var = None
+        for xvar in self.localvars:
+            if xvar.name == f'local_{self.current_function.name[9:]}_{node.lex}_{len(self.localvars)}':
+                var = xvar
+        if var == None:
+            var = self.register_local(node.lex)
+        
+        constant = None
+        for data in self.dotdata:
+            if data.value == node.lex:
+                constant = data.name    
+            
+        self.register_instruction(cil.LoadNode(var, constant))
+        
+        return var
