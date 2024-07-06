@@ -1,9 +1,9 @@
-from engine.lexer.hulk_lexer import HulkLexer
+from engine.Lexer.hulk_lexer import HulkLexer
 from engine.language.tokens_type import hulk_tokens
 from engine.language.grammar import G
 from cmp.automata import State
-from engine.lexer.regex import Regex
-from engine.parser.lr1_parser_generator import LR1Parser
+from engine.Lexer.regex import Regex
+from engine.Parser.lr1_parser_generator import LR1Parser
 from cmp.evaluation import evaluate_reverse_parse
 
 

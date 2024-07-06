@@ -4,8 +4,8 @@ from typing import List
 import dill
 
 import engine.language.grammar as grammar
-from engine.lexer.hulk_lexer import TokenType
-from engine.parser.lr1_parser_generator import LR1Parser
+from engine.Lexer.hulk_lexer import TokenType
+from engine.Parser.lr1_parser_generator import LR1Parser
 from cmp.utils import Token
 
 

@@ -1,7 +1,7 @@
 from cmp.pycompiler import Grammar
 from cmp.pycompiler import Item
 from cmp.automata import State, lr0_formatter
-from engine.parser.firsts_follows import compute_firsts, compute_follows
+from engine.Parser.firsts_follows import compute_firsts, compute_follows
 from engine.language.errors import *
 
 

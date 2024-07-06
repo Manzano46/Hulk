@@ -16,10 +16,11 @@ class TypeInferer(object):
 
     @visitor.when(ProgramNode)
     def visit(self, node):
-        for declaration in node.declarations:
-            self.visit(declaration)
+        for _ in range(5):
+            for declaration in node.declarations:
+                self.visit(declaration)
 
-        self.visit(node.expression)
+            self.visit(node.expression)
 
     @visitor.when(TypeDeclarationNode)
     def visit(self, node):
@@ -143,7 +144,7 @@ class TypeInferer(object):
         function = self.context.get_function(node.id)
 
         return_type: Type = self.visit(node.expr)
-        print(return_type)
+        # print(return_type)
 
         if function.return_type.is_unknow() and not function.return_type.is_error() and (
                 return_type.is_unknow() or return_type.is_error()):
@@ -192,24 +193,24 @@ class TypeInferer(object):
     
     @visitor.when(VarDeclarationNode)
     def visit(self, node: VarDeclarationNode):
-        print("VarDeclaration Node", node.id)
+        # print("VarDeclaration Node", node.id)
 
         inf_type = self.visit(node.expr)
         var = node.scope.find_variable(node.id)
-        print(var.name, var.type)
+        # print(var.name, var.type)
         var.type = var.type if not var.type.is_unknow() or var.type.is_error() else inf_type
         return var.type
 
     @visitor.when(LetInNode)
     def visit(self, node):
-        print("Node Let In")
+        # print("Node Let In")
         for declaration in node.var_declarations:
             self.visit(declaration)
         return self.visit(node.expr)
     
     @visitor.when(DestructiveAssignmentNode)
     def visit(self, node):
-        print("Destructive")
+        # print("Destructive")
         new_type = self.visit(node.expr)
         old_type = self.visit(node.var)
 
@@ -387,7 +388,7 @@ class TypeInferer(object):
 
     @visitor.when(ArithmeticExpressionNode)
     def visit(self, node: ArithmeticExpressionNode):
-        print("Arithmetic Node")
+        # print("Arithmetic Node")
         scope: Scope = node.scope
 
         number_type: Type = self.context.get_type('Number')
@@ -528,6 +529,7 @@ class TypeInferer(object):
 
     @visitor.when(NumberNode)
     def visit(self, node):
+        # print("Number node ")
         return self.context.get_type('Number')
 
     @visitor.when(StringNode)

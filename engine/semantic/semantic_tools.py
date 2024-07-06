@@ -29,7 +29,7 @@ def _get_lca(type1: Type, type2: Type) -> Type:
     
     return _get_lca(type1.parent, type2.parent)
 
-def get_lower_heir(var_name: str, *types: Type) -> Type:
+def get_lower_heir(var_name: str, types: list[Type]) -> Type:
     if not types or any(isinstance(t, ErrorType) for t in types):
         return ErrorType()
     
