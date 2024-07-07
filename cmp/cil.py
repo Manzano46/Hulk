@@ -27,6 +27,8 @@ class FunctionNode(Node):
         self.params = params
         self.localvars = localvars
         self.instructions = instructions
+        self.vars = {}
+        self.constants = {}
 
 class ParamNode(Node):
     def __init__(self, name):
@@ -169,6 +171,11 @@ def get_formatter():
 
             return f'.TYPES\n{dottypes}\n\n.DATA\n{dotdata}\n\n.CODE\n{dotcode}'
 
+        @visitor.when(DataNode)
+        def visit(self, node : DataNode):
+            return f'{node.name}  = {node.value}'
+        
+
         @visitor.when(TypeNode)
         def visit(self, node):
             attributes = '\n\t'.join(f'attribute {x}' for x in node.attributes)
@@ -235,6 +242,15 @@ def get_formatter():
         @visitor.when(ReturnNode)
         def visit(self, node):
             return f'RETURN {node.value if node.value is not None else ""}'
+
+        @visitor.when(PrintNode)
+        def visit(self, node):
+            return f'PRINT {node.str_addr if node.str_addr is not None else ""}'
+        
+        @visitor.when(LoadNode)
+        def visit(self, node):
+            return f'{node.dest} = LOAD {node.msg}'
+        
 
     printer = PrintVisitor()
     return (lambda ast: printer.visit(ast))

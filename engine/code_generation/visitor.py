@@ -27,8 +27,13 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.ReturnNode(0))
         self.current_function = None
         
-        for feature in node.declarations + [node.expression]:
+        print(node.expression)
+        self.register_instruction(cil.ReturnNode(self.visit(node.expression)))
+        
+        for feature in node.declarations: 
             self.visit(feature)
+        
+        
 
         return cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
     
@@ -145,6 +150,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         for declaration in node.var_declarations:
             self.visit(declaration)
             
+        print(node.expr, 'aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
         return self.visit(node.expr)
     
     @visitor.when(PlusNode)
@@ -252,19 +258,20 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         # node.lex -> string
         ######################################################
         
-        var = None
-        for xvar in self.localvars:
-            if xvar.name == f'local_{self.current_function.name[9:]}_{node.lex}_{len(self.localvars)}':
-                var = xvar
+        print('string')
+        
+        var = self.find_cte(node.lex)
         if var == None:
-            var = self.register_local(node.lex)
+            var = self.register_local_cte(node.lex)
         
         constant = None
         for data in self.dotdata:
             if data.value == node.lex:
-                constant = data.name    
-            
-        self.register_instruction(cil.LoadNode(var, constant))
+                constant = data.name 
+                
+        if constant == None:
+            cte = self.register_data(node.lex)
+            self.register_instruction(cil.LoadNode(var, cte.name))
         
         return var
     
@@ -279,4 +286,50 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         else:
             return 0
     
+    @visitor.when(ExpressionBlockNode)
+    def visit(self, node : ExpressionBlockNode):
+        ######################################################
+        # node.expressions -> [ExpressionNode ...]
+        ######################################################
+        
+        value = None
+        for expr in node.expressions:
+            value = self.visit(expr)
+        
+        return value
     
+    @visitor.when(VariableNode)
+    def visit(self, node : VariableNode):
+        ######################################################
+        # node.lex -> string
+        # node.type -> Type
+        ######################################################
+        
+        var = self.find(node.lex)
+        
+        return var
+    
+    @visitor.when(PrintNode)
+    def visit(self, node : PrintNode):
+        ######################################################
+        # node.expr -> ExpressionNode
+        ######################################################
+        print('print')
+        value = self.visit(node.expr)
+        
+        self.register_instruction(cil.PrintNode(value))
+        
+    @visitor.when(FunctionCallNode)
+    def visit(self, node : FunctionCallNode):
+        ######################################################
+        # node.idx -> string
+        # node.args -> [ExpressionNode ...]
+        ######################################################
+        print('functionCall')
+        if node.idx == 'print':
+            self.register_instruction(cil.PrintNode(self.visit(node.args[0])))
+        else:
+            for arg in node.args:
+                value = self.visit(arg)
+                self.register_function(cil.ArgNode(value))
+        
