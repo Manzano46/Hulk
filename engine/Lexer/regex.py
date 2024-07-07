@@ -119,15 +119,16 @@ def regex_tokenizer(text, G : Grammar, skip_whitespaces=True):
     #print(tokens)
     return tokens
 
+_grammar = regex_grammar()
+_parser = LR1Parser(_grammar)
+
 class Regex():
     def __init__(self, regular_exp, skip_whitespaces = False) -> None:
         self._regular_exp = regular_exp
-        self._grammar = regex_grammar()
-        self._parser = LR1Parser(self._grammar)
       
-        self._tokens = regex_tokenizer(regular_exp, self._grammar, skip_whitespaces=skip_whitespaces)
+        self._tokens = regex_tokenizer(regular_exp, _grammar, skip_whitespaces=skip_whitespaces)
         
-        self._right_parse, self._operations = self._parser([token.token_type for token in self._tokens], True)
+        self._right_parse, self._operations = _parser([token.token_type for token in self._tokens], True)
       
         self._ast = evaluate_reverse_parse(self._right_parse, self._operations, self._tokens)
        

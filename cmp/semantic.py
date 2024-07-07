@@ -301,7 +301,8 @@ class Context:
         except SemanticError:
             try:
                 type_or_protocol = self.get_protocol(name)
-            except SemanticError:
+            except SemanticError as e:
+                # self.errors.append(e)
                 type_or_protocol = ErrorType()
         return type_or_protocol
         
@@ -401,19 +402,28 @@ class VariableInfo:
 
     def infer(self, t: Type):
         self.infered_types.append(t)
+    
+    def __str__(self):
+        return f"[var] {self.name}: {self.type.name};"
 
 class Scope:
-    def __init__(self, parent=None):
-        self.locals = []
-        self.parent = parent
-        self.children = []
+    def __init__(self, parent = None):
+        self.locals: list[VariableInfo] = []
+        self.parent: Scope = parent
+        self.children: list[Scope] = []
         self.index = 0 if parent is None else len(parent)
 
     def __len__(self):
         return len(self.locals)
     
     def __str__(self):
-        return '{\n\t' + '\n\t'.join(y for x in self.locals for y in str(x).split('\n')) + '\n}'
+        local = '\n\t'.join(str(x) for x in self.locals)
+        children = '\n\t'.join(y for x in self.children for y in str(x).split('\n'))
+        children = f"Children: [\n\t {children} \n]\n" if children != '' else ''
+        init = '{\n\t' if local != '' or children != '' else '{'
+        end = '\n\t}' if local != '' or children != '' else '}'
+        middle = '\n\t' if local != '' else ''
+        return f'{init}{local}{middle}{children}{end}'
 
     def create_child(self):
         child = Scope(self)
@@ -431,7 +441,7 @@ class Scope:
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+            return self.parent.find_variable(vname, self.index) if self.parent is not None else None
 
     def is_defined(self, vname):
         aux = self.find_variable(vname)

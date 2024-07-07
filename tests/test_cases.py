@@ -1,6 +1,6 @@
 input1 = "let number = 42 in let text = \"The meaning of life is\" in print(text @ number);"
   
-input2 = "let a = 5 in { print(a+b); print(b*c); print(c/a); }"
+input2 = "let a = 5, b = 1, c = 10 in { print(a+b); print(b*c); b + c/a; }"
 
 input3 = '''
     let a = 0 in {
@@ -93,10 +93,14 @@ input9 =  '''
 input10 = '''
     let a = 1 in {
         a+2;
-    }
+    };
     '''
+    
+input11 = '''
+    print(\"HOLA MUNDO\")
+'''
 
-test_cases = [input1, input2, input3, input4, input5, input6, input7, input8, input9, input10]
+test_cases = [input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11]
 # function tan(x: Number): Number => sin(x) / cos(x);
 
 
