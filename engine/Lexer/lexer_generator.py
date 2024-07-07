@@ -1,4 +1,4 @@
-from engine.Lexer.regex import Regex
+from engine.lexer.regex import Regex
 from cmp.automata import State
 from cmp.utils import Token
 # import pydot

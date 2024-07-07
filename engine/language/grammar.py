@@ -22,7 +22,7 @@ program = G.NonTerminal('<program>', startSymbol=True)
 
 global_expression, special_exp, expression, declarations, decl = G.NonTerminals('<global_expression> <special_exp> <expression> <declarations> <decl>')
 
-let_exp, if_exp, loop_exp, assignment_exp = G.NonTerminals('<let_exp> <if_exp> <loop_exp> <assignment_exp>')
+let_exp, if_exp, loop_exp, assignment_exp, attribute = G.NonTerminals('<let_exp> <if_exp> <loop_exp> <assignment_exp> <attribute_exp>')
 
 expr, block, term, factor = G.NonTerminals('<expr> <block> <term> <factor>')
 
@@ -142,8 +142,8 @@ assignment %= idx + colon + idx + equal + expr, lambda h,s : VarDeclarationNode(
 feature_list %= feature, lambda h,s : [s[1]] #                feature_list -> feature
 feature_list %= feature + feature_list, lambda h,s : [s[1]] + s[2] #        | feature feature ...
 
-feature %= assignment + semi, lambda h,s : s[1] # feature -> assignment ;
-feature %= meth, lambda h,s : s[1] #                       | method
+feature %= attribute + semi, lambda h,s : s[1] # feature -> attribute; 
+feature %= meth, lambda h,s : s[1] #                      | method
 
 # Functions and methods ----------------------------------------------------------------
 func_decl %= func + idx + opar + params + cpar + body, lambda h,s : FunctionDeclarationNode(s[2], s[4], s[6]) # function_declaration -> function name (params) body
@@ -166,6 +166,10 @@ type_decl %= type_ + idx + inherits + idx + opcur + feature_list + clcur, lambda
 type_decl %= type_ + idx + inherits + idx + opar + args + cpar + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], [], s[8], s[4], s[6]) # type_declaration -> type name inherits name (args) { assignments and methods}
 type_decl %= type_ + idx + opar + params + cpar + inherits + idx + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], s[4], s[9], s[7]) # type_declaration -> type name (params) inherits name { assignments and methods}
 type_decl %= type_ + idx + opar + params + cpar + inherits + idx + opar + args + cpar + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], s[4], s[12], s[7], s[9]) # type_declaration -> type name (params) inherits name (args) { assignments and methods}
+
+# Attributes
+attribute %= idx + equal + expr, lambda h,s : AttributeDeclarationNode(s[1],s[3]) #            attribute -> name = expression
+attribute %= idx + colon + idx + equal + expr, lambda h,s : AttributeDeclarationNode(s[1],s[5],s[3]) #    | name : type = expression
 
 # Protocoles
 protocol_decl %= protocol + idx + opcur + clcur, lambda h,s : ProtocolDeclarationNode(s[2]) #                                  protocol -> protocol name {}

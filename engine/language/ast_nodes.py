@@ -225,11 +225,6 @@ class UnaryExpressionNode(ExpressionNode):
 
 
 
-class PrintNode(ExpressionNode):
-    def __init__(self, expr:ExpressionNode):
-        self.expr = expr
-
-
 class NumberNode(AtomicNode):
     #def __init__(self,lex):
         #self.lex = float(lex)

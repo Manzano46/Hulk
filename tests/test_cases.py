@@ -36,14 +36,24 @@ input7 = '''
         setX(x) => self.x := x;
         setY(y) => self.y := y;
     }
-    type PolarPoint(phi, rho) inherits Point(rho * sin(phi), rho * cos(phi)) {
-            strin = "ijbhuh";       
-        }
+    type PolarPoint inherits Point {
+        rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2);
+        
+    }
+    type Person(firstname, lastname) {
+        firstname = firstname;
+        lastname = lastname;
+
+        name() => self.firstname @@ self.lastname;
+    }
     function gcd(a, b) => while (a > 0)
         let m = a % b in {
             b := a;
             a := m;
         };
+    type Knight inherits Person {
+        name() => "Sir" @@ base();
+    }
     let a = 10 in while (a >= 0) {
         print(a);
         for (x in range(0, 10)) print(x);

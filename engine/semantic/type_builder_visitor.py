@@ -26,6 +26,7 @@ class TypeBuilder:
         # if self.context.cyclic_protocol_inheritance():
         #     self.errors.append(SemanticError('There is cyclic inheritance of protocols'))
 
+        self.visit(node.expression)
         return self.errors, self.context
 
     @visitor.when(TypeDeclarationNode)
@@ -33,6 +34,7 @@ class TypeBuilder:
         print('visitando el tipo ' + node.name)
         try:
             self.current_type = self.context.get_type(node.name)
+            print('el current type es ' + self.current_type.name)
         except SemanticError as e:
             self.errors.append(e)
             self.current_type = ErrorType()
@@ -44,18 +46,21 @@ class TypeBuilder:
                 self.errors.append(e)
                 current_parent_type = ErrorType()
             try:
+                print('el padre de ' + self.current_type.name + ' es ' + current_parent_type.name)
                 self.current_type.set_parent(current_parent_type)
             except SemanticError as e:
                 self.errors.append(e)
 
-        for attribute in node.attributes:
+        for name,attribute in node.attributes:
             self.visit(attribute)
+        print(len(node.attributes))
 
-        for method in node.methods:
+        for name,method in node.methods:
             self.visit(method)
             
     @visitor.when(AttributeDeclarationNode)
     def visit(self, node):
+        print('visitando un atributo '+ node.name)
         if node.attribute_type is None:
             attr_type = UnknowType()
         else:
@@ -64,7 +69,7 @@ class TypeBuilder:
             except SemanticError as e:
                 self.errors.append(e)
                 attr_type = ErrorType()
-            
+        print('el tipo de atributo asignado es '+ attr_type.name)
         try:
             self.current_type.define_attribute(node.name, attr_type)
         except SemanticError as e:
@@ -72,6 +77,7 @@ class TypeBuilder:
     
     @visitor.when(MethodDeclarationNode)
     def visit(self, node):
+        print('visitando un metodo '+ node.name)
         params_names = []
         params_types = []
         
@@ -89,7 +95,7 @@ class TypeBuilder:
                 except SemanticError as e:
                     self.errors.append(e)
                     param_type = ErrorType()
-                
+            print('el parametro ' + param.lex + ' de tipo' + param_type.name + ' annadido' )
             params_names.append(param.lex)
             params_types.append(param_type)
 
@@ -101,7 +107,7 @@ class TypeBuilder:
             except SemanticError as e:
                 self.errors.append(e)
                 return_type = ErrorType()
-
+        print('el tipo de retorno del metodo es ' + return_type.name)
         try:
             self.current_type.define_method(node.name, params_names, params_types, return_type)
         except SemanticError as e:

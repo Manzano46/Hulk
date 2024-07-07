@@ -6,11 +6,12 @@ def get_ast_printer():
     class PrintVisitor(object):
         @visitor.on('node')
         def visit(self, node, tabs):
+            print(node)
             pass
 
         @visitor.when(ProgramNode)
         def visit(self, node, tabs=0):
-            return ''.join(self.visit(declaration, tabs) for declaration in node.declarations + [node.expression])
+            return ''.join('\n' + self.visit(declaration, tabs) for declaration in node.declarations + [node.expression])
         
         @visitor.when(UnaryExpressionNode)
         def visit(self, node, tabs=0):
@@ -57,11 +58,14 @@ def get_ast_printer():
             return f'{ans}\n{child}'
         
         @visitor.when(TypeDeclarationNode)
-        def visit(self, node, tabs=0):
+        def visit(self, node : TypeDeclarationNode, tabs=0):
             ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
             params = ''.join('\n' + self.visit(param, tabs + 1) for param in node.params)
-            body = ''.join('\n' + self.visit(feature, tabs + 1) for feature in node.body)
-            return f'{ans}\n{params}\n{body}'
+            
+        
+            methods = ''.join('\n' + self.visit(feature, tabs + 1) for name,feature in node.methods)
+            attribute = ''.join('\n' + self.visit(feature, tabs + 1) for name,feature in node.attributes)
+            return f'{ans}\n{params}\n{attribute}\n{methods}'
         
         @visitor.when(ProtocolDeclarationNode)
         def visit(self, node, tabs=0):
@@ -165,9 +169,9 @@ def get_ast_printer():
             return f'{ans}\n{args}'
         
         @visitor.when(AttributeCallNode)
-        def visit(self, node, tabs=0):
+        def visit(self, node: AttributeCallNode, tabs=0):
             ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
-            
+            print(node.obj, node.attribute)
             return f'{ans}'
         
         @visitor.when(VectorInitializationNode)
@@ -197,12 +201,12 @@ def get_ast_printer():
             
             return f'{ans}\n{args}'
         
-        @visitor.when(PrintNode)
-        def visit(self, node, tabs=0):
-            ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
-            child = self.visit(node.expr, tabs + 1)
+        # @visitor.when(PrintNode)
+        # def visit(self, node, tabs=0):
+        #     ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
+        #     child = self.visit(node.expr, tabs + 1)
             
-            return f'{ans}\n{child}'
+        #     return f'{ans}\n{child}'
         
         
 

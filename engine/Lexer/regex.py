@@ -3,7 +3,7 @@ from engine.Automaton.automaton_operations import automata_union, automata_conca
 from cmp.pycompiler import Grammar
 from cmp.utils import Token
 from cmp.evaluation import evaluate_reverse_parse
-from engine.Parser.lr1_parser_generator import LR1Parser
+from engine.parser.lr1_parser_generator import LR1Parser
 
 class Node:
     def evaluate(self):

@@ -309,15 +309,15 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         
         return var
     
-    @visitor.when(PrintNode)
-    def visit(self, node : PrintNode):
-        ######################################################
-        # node.expr -> ExpressionNode
-        ######################################################
-        print('print')
-        value = self.visit(node.expr)
+    # @visitor.when(PrintNode)
+    # def visit(self, node : PrintNode):
+    #     ######################################################
+    #     # node.expr -> ExpressionNode
+    #     ######################################################
+    #     print('print')
+    #     value = self.visit(node.expr)
         
-        self.register_instruction(cil.PrintNode(value))
+    #     self.register_instruction(cil.PrintNode(value))
         
     @visitor.when(FunctionCallNode)
     def visit(self, node : FunctionCallNode):

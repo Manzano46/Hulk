@@ -94,7 +94,7 @@ class VarCollector:
         var_type = UnknowType()
         if node.var_type is not None:
             try:
-                var_type = self.context.get_type_or_protocol(node.var_type.name)
+                var_type = self.context.get_type_or_protocol(node.var_type)
                 
             except SemanticError as e:
                 self.errors.append(e)
