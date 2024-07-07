@@ -15,7 +15,8 @@ class TypeCollector(object):
     @visitor.when(ProgramNode)
     def visit(self, node : ProgramNode):
         self.context = Context()
-        print("helooooo")
+
+        self.context.types['Unknown'] = UnknowType()
 
         object_type = self.context.create_type('Object')
 

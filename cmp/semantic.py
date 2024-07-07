@@ -195,7 +195,7 @@ class ErrorType(Type):
     
 class UnknowType(Type):
     def __init__(self):
-        Type.__init__(self, '<unknow>')
+        Type.__init__(self, 'Unknow')
 
     def __eq__(self, other):
         return isinstance(other, UnknowType) or other.name == self.name
@@ -288,21 +288,20 @@ class Context:
         return typex
 
     def get_type(self, name:str) -> Type:
+        #print('buscando entre los tipos a ' + name)
         try:
             return self.types[name]
         except KeyError:
             raise SemanticError(f'Type "{name}" is not defined.')
         
     def get_type_or_protocol(self, name:str):
-        print("pidiendo typo", name)
+        #print('buscando entre los protocolos y los tipos a ' + name)
         try:
-            type_or_protocol = self.get_protocol(name)
-
-        except :
+            type_or_protocol = self.get_type(name)
+        except SemanticError:
             try:
-                type_or_protocol = self.get_type(name)
-            except SemanticError as e:
-                self.errors.append(e)
+                type_or_protocol = self.get_protocol(name)
+            except SemanticError:
                 type_or_protocol = ErrorType()
         return type_or_protocol
         
@@ -313,6 +312,7 @@ class Context:
         return protocolx
     
     def get_protocol(self, name:str):
+        #print('buscando entre los protocolos a ' + name)
         try:
             return self.protocols[name]
         except KeyError:
@@ -348,7 +348,7 @@ class Context:
         
         def dfs(node):
             visiting.add(node)
-            if node.parent is not None:
+            if node.parent is not None and not node.parent.is_error():
                 if node.parent in visiting:
                     return True
                 if node.parent not in visited:

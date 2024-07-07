@@ -20,16 +20,17 @@ class TypeBuilder:
         for declaration in node.declarations:
             self.visit(declaration)
 
-        if self.context.cyclic_type_inheritance():
-            self.errors.append(SemanticError('There is cyclic inheritance of types'))
+        # if self.context.cyclic_type_inheritance():
+        #     self.errors.append(SemanticError('There is cyclic inheritance of types'))
 
-        if self.context.cyclic_protocol_inheritance():
-            self.errors.append(SemanticError('There is cyclic inheritance of protocols'))
+        # if self.context.cyclic_protocol_inheritance():
+        #     self.errors.append(SemanticError('There is cyclic inheritance of protocols'))
 
         return self.errors, self.context
 
     @visitor.when(TypeDeclarationNode)
     def visit(self, node):
+        print('visitando el tipo ' + node.name)
         try:
             self.current_type = self.context.get_type(node.name)
         except SemanticError as e:

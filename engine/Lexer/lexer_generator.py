@@ -1,10 +1,10 @@
-from engine.lexer.regex import Regex
+from engine.Lexer.regex import Regex
 from cmp.automata import State
 from cmp.utils import Token
 import pydot
 from engine.language.errors import * #HulkLexicographicError
-from engine.automaton.automaton import NFA, DFA, nfa_to_dfa
-from engine.automaton.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
+from engine.Automaton.automaton import NFA, DFA, nfa_to_dfa
+from engine.Automaton.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
 class Lexer:
     def __init__(self, table, eof):
         self.eof = eof
