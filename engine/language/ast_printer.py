@@ -57,7 +57,7 @@ def get_ast_printer():
             return f'{ans}\n{child}'
         
         @visitor.when(TypeDeclarationNode)
-        def visit(self, node, tabs=0):
+        def visit(self, node : TypeDeclarationNode, tabs=0):
             ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
             params = ''.join('\n' + self.visit(param, tabs + 1) for param in node.params)
             body = ''.join('\n' + self.visit(feature, tabs + 1) for feature in node.body)
@@ -88,7 +88,7 @@ def get_ast_printer():
         @visitor.when(ConditionalNode)
         def visit(self, node, tabs=0):
             ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
-            conditions = ''.join('\n' + self.visit(condition, tabs + 1) for condition in node.condition_expression_list)
+            conditions = ''.join('\n' + self.visit(condition, tabs + 1) + '\n' + self.visit(expr, tabs + 1) for condition, expr in node.condition_expression_list)
             
             child = self.visit(node.else_expr, tabs + 1)
             

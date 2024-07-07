@@ -99,13 +99,17 @@ class TypeOfNode(InstructionNode):
         self.dest = dest
 
 class LabelNode(InstructionNode):
-    pass
+    def __init__(self, name):
+        self.name = name
 
 class GotoNode(InstructionNode):
-    pass
+    def __init__(self, label):
+        self.label = label
 
 class GotoIfNode(InstructionNode):
-    pass
+    def __init__(self, condition, label):
+        self.condition = condition
+        self.label = label
 
 class StaticCallNode(InstructionNode):
     def __init__(self, function, dest):
@@ -255,6 +259,7 @@ def get_formatter():
 
         @visitor.when(FunctionNode)
         def visit(self, node):
+            print(node.instructions)
             params = '\n\t'.join(self.visit(x) for x in node.params)
             localvars = '\n\t'.join(self.visit(x) for x in node.localvars)
             instructions = '\n\t'.join(self.visit(x) for x in node.instructions)
@@ -296,6 +301,14 @@ def get_formatter():
         @visitor.when(StarNode)
         def visit(self, node):
             return f'{node.dest} = {node.left} * {node.right}'
+
+        @visitor.when(ModNode)
+        def visit(self, node : ModNode):
+            return f'{node.dest} = {node.left} % {node.right}'
+        
+        @visitor.when(PowNode)
+        def visit(self, node : PowNode):
+            return f'{node.dest} = {node.left} ^ {node.right}'
 
         @visitor.when(DivNode)
         def visit(self, node):
@@ -365,6 +378,17 @@ def get_formatter():
         def visit(self, node):
             return f'{node.dest} = LOAD {node.msg}'
         
+        @visitor.when(LabelNode)
+        def visit(self, node):
+            return f'LABEL {node.name}'
+        
+        @visitor.when(GotoNode)
+        def visit(self, node):
+            return f'GOTO {node.label}'
+        
+        @visitor.when(GotoIfNode)
+        def visit(self, node : GotoIfNode):
+            return f'IF {node.condition} GOTO {node.label}'
 
     printer = PrintVisitor()
     return (lambda ast: printer.visit(ast))

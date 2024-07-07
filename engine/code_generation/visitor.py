@@ -347,3 +347,132 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.ConcatNode(result, left, right))
         
         return result
+    
+    @visitor.when(ConditionalNode)
+    def visit(self, node : ConditionalNode):
+        ######################################################
+        # node.conditional_expression_list -> [ExpressionNode]
+        # node.else_expr ->
+        ######################################################
+        
+        dif = self.labels # <----
+        
+        return_ = self.define_internal_local()
+        
+        for (it,(condition, expression)) in enumerate(node.condition_expression_list):
+            cond = self.visit(condition)
+            print(cond, condition)
+            
+            self.register_instruction(cil.GotoIfNode(cond, f'label_{self.labels}' ))
+            #dif = self.labels - it
+            self.labels += 1
+        
+        
+        else_ = self.visit(node.else_expr)
+        self.register_instruction(cil.AssignNode(return_, else_))
+        self.register_instruction(cil.GotoNode(f'label_{self.labels}'))
+            
+        for (it,(condition, expression)) in enumerate(node.condition_expression_list):
+            
+            label = dif + it
+            self.register_instruction(cil.LabelNode(f'label_{label}'))
+            
+            expr = self.visit(expression)
+            self.register_instruction(cil.AssignNode(return_, expr))
+            
+            self.register_instruction(cil.GotoNode(f'label_{self.labels}'))
+            
+        self.register_instruction(cil.LabelNode(self.labels))
+        self.labels += 1
+        
+        return return_
+    
+    @visitor.when(EqualNode)
+    def visit(self, node : EqualNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.EqualNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(NotEqualNode)
+    def visit(self, node : EqualNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.NotEqualNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(GreaterOrEqualNode)
+    def visit(self, node : GreaterOrEqualNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.GreaterOrEqualNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(LessOrEqualNode)
+    def visit(self, node : LessOrEqualNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.LessOrEqualNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(LessThanNode)
+    def visit(self, node : LessThanNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.LessThanNode(result, left, right))
+        
+        return result
+    
+    @visitor.when(GreaterThanNode)
+    def visit(self, node : GreaterThanNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.GreaterThanNode(result, left, right))
+        
+        return result

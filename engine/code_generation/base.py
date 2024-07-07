@@ -12,6 +12,7 @@ class BaseHulkToCILVisitor:
         self.current_function = None
         self.context : Context = context
         self.main = None
+        self.labels = 0
     
     @property
     def params(self):
