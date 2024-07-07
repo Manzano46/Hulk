@@ -65,6 +65,9 @@ class Protocol:
         method = Method(name, param_names, param_types, return_type)
         self.methods.append(method)
         return method
+    
+    def bypass(self):
+        return False
 
 class ErrorProtocol(Protocol):
     def __init__(self):

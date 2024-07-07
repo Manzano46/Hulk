@@ -4,7 +4,7 @@ from cmp.semantic import *
 
 class Node(ABC):
     def __init__(self):
-        self.scope = None
+        self.scope: Scope
 
 # A program node has declaration and expression nodes
 class ProgramNode(Node):
@@ -14,20 +14,21 @@ class ProgramNode(Node):
         self.expression = global_expression
 
         
-class DeclarationNode(Node,ABC):
+class DeclarationNode(Node):
     pass
         
-class ExpressionNode(Node,ABC):
+class ExpressionNode(Node):
     pass
 
-class AtomicNode(ExpressionNode):
+class AtomicNode(ExpressionNode, ABC):
     def __init__(self,lex):
+        super().__init__()
         self.lex = lex
         
 class VariableNode(AtomicNode):
     def __init__(self, lex, type=None):
         super().__init__(lex)
-        self.type: Type = type
+        self.type = type
     
 # A declaration node can be a function declaration, a type declaration or a protocol declaration
 class FunctionDeclarationNode(DeclarationNode):
@@ -209,7 +210,7 @@ class BaseCallNode(ExpressionNode):
 
 
 
-class BinaryExpressionNode(ExpressionNode):
+class BinaryExpressionNode(ExpressionNode, ABC):
     def __init__(self, left:ExpressionNode, right:ExpressionNode):
         super().__init__()
         self.left = left
@@ -217,12 +218,11 @@ class BinaryExpressionNode(ExpressionNode):
         self.operator = None
 
 
-class UnaryExpressionNode(ExpressionNode):
+class UnaryExpressionNode(ExpressionNode, ABC):
     def __init__(self, operand):
         super().__init__()
         self.operand = operand
         self.operator = None
-
 
 
 class NumberNode(AtomicNode):
@@ -241,23 +241,23 @@ class BooleanNode(AtomicNode):
     pass
 
         
-class StrBinaryExpressionNode(BinaryExpressionNode):
+class StrBinaryExpressionNode(BinaryExpressionNode, ABC):
     pass
 
 
-class BoolBinaryExpressionNode(BinaryExpressionNode):
+class BoolBinaryExpressionNode(BinaryExpressionNode, ABC):
     pass
 
 
-class InequalityExpressionNode(BinaryExpressionNode):
+class InequalityExpressionNode(BinaryExpressionNode, ABC):
     pass
 
 
-class ArithmeticExpressionNode(BinaryExpressionNode):
+class ArithmeticExpressionNode(BinaryExpressionNode, ABC):
     pass
 
 
-class EqualityExpressionNode(BinaryExpressionNode):
+class EqualityExpressionNode(BinaryExpressionNode, ABC):
     pass
 
 

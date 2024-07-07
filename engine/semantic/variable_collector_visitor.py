@@ -15,7 +15,7 @@ class VarCollector:
     @visitor.when(ProgramNode)
     def visit(self, node, scope = None):
         scope = Scope()
-        print("VarCollector Visitor")
+        # print("VarCollector Visitor")
         node.scope = scope
 
         for declaration in node.declarations:
@@ -39,6 +39,9 @@ class VarCollector:
                 scope.define_variable(param.lex, param.type)
 
         scope.define_variable('self', self.current_type)
+
+        for expr in node.parent_args:
+            self.visit(expr, scope.create_child())
 
         for attribute in node.attributes:
             self.visit(attribute, scope.create_child())
@@ -66,7 +69,7 @@ class VarCollector:
     @visitor.when(FunctionDeclarationNode)
     def visit(self, node: FunctionDeclarationNode, scope: Scope):
         node.scope = scope
-        print("Function declaration node")
+        # print("Function declaration node")
         function: Method = self.context.get_function(node.id)
 
         new_scope = scope.create_child()
@@ -87,7 +90,7 @@ class VarCollector:
     
     @visitor.when(VarDeclarationNode)
     def visit(self, node, scope):
-        print("VarDeclaration Node")
+        # print("VarDeclaration Node")
         node.scope = scope
         self.visit(node.expr, scope.create_child())
 
@@ -105,7 +108,7 @@ class VarCollector:
 
     @visitor.when(LetInNode)
     def visit(self, node, scope):
-        print("LetIn node")
+        # print("LetIn node")
         node.scope = scope
         for declaration in node.var_declarations:
             self.visit(declaration, scope)
@@ -219,7 +222,7 @@ class VarCollector:
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode, scope: Scope):
-        print("Var node", node.lex)
+        # print("Var node", node.lex)
         node.scope = scope
 
     @visitor.when(BooleanNode)
