@@ -20,6 +20,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         instance = self.define_internal_local()
         result = self.define_internal_local()
         main_method_name = self.to_function_name('main', 'Main')
+        self.main = self.register_function(main_method_name)
         self.register_instruction(cil.AllocateNode('Main', instance))
         self.register_instruction(cil.ArgNode(instance))
         self.register_instruction(cil.StaticCallNode(main_method_name, result))
@@ -123,9 +124,11 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         var = node.scope.find_variable(node.id)
         
         obj = self.register_local(var)
-        xtype = var.type
+        xtype = var.type.name
         
-        self.register_instruction(cil.AllocateNode(xtype, obj))
+        if xtype != 'Number':
+            self.register_instruction(cil.AllocateNode(xtype, obj))
+        
         value = self.visit(node.expr)
         
         self.register_instruction(cil.AssignNode(obj, value))

@@ -1,9 +1,9 @@
-from engine.Automaton.automaton import NFA, DFA, nfa_to_dfa
-from engine.Automaton.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
+from engine.automaton.automaton import NFA, DFA, nfa_to_dfa
+from engine.automaton.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
 from cmp.pycompiler import Grammar
 from cmp.utils import Token
 from cmp.evaluation import evaluate_reverse_parse
-from engine.Parser.lr1_parser_generator import LR1Parser
+from engine.parser.lr1_parser_generator import LR1Parser
 
 class Node:
     def evaluate(self):
@@ -119,15 +119,16 @@ def regex_tokenizer(text, G : Grammar, skip_whitespaces=True):
     #print(tokens)
     return tokens
 
+_grammar = regex_grammar()
+_parser = LR1Parser(_grammar)
+
 class Regex():
     def __init__(self, regular_exp, skip_whitespaces = False) -> None:
         self._regular_exp = regular_exp
-        self._grammar = regex_grammar()
-        self._parser = LR1Parser(self._grammar)
       
-        self._tokens = regex_tokenizer(regular_exp, self._grammar, skip_whitespaces=skip_whitespaces)
+        self._tokens = regex_tokenizer(regular_exp, _grammar, skip_whitespaces=skip_whitespaces)
         
-        self._right_parse, self._operations = self._parser([token.token_type for token in self._tokens], True)
+        self._right_parse, self._operations = _parser([token.token_type for token in self._tokens], True)
       
         self._ast = evaluate_reverse_parse(self._right_parse, self._operations, self._tokens)
        

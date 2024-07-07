@@ -1,7 +1,8 @@
-from engine.Lexer.regex import Regex
+from engine.lexer.regex import Regex
 from cmp.automata import State
 from cmp.utils import Token
 # import pydot
+from engine.language.tokens_type import TokenType
 from engine.language.errors import * #HulkLexicographicError
 # from engine.automaton.automaton import NFA, DFA, nfa_to_dfa
 # from engine.automaton.automaton_operations import automata_union, automata_concatenation, automata_closure, automata_minimization
@@ -74,7 +75,7 @@ class Lexer:
             
             text=text[len(final_lex):]
             
-        yield '$', self.eof, row, column
+        yield '$', TokenType.EOF, row, column
     
     def __call__(self, text):
         return [ Token(lex, ttype, row, column) for lex, ttype, row, column in self._tokenize(text) ]
