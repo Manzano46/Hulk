@@ -135,7 +135,10 @@ class LengthNode(InstructionNode):
     pass
 
 class ConcatNode(InstructionNode):
-    pass
+    def __intit__(self, dest, left, right):
+        self.dest = dest
+        self.left = left
+        self.right = right
 
 class PrefixNode(InstructionNode):
     pass
@@ -155,6 +158,73 @@ class ReadNode(InstructionNode):
 class PrintNode(InstructionNode):
     def __init__(self, str_addr):
         self.str_addr = str_addr
+    
+class NotNode(InstructionNode):
+    def __inti__(self, dest, value):
+        self.value = value
+        self.dest = dest
+
+
+class NegNode(InstructionNode):
+    def __inti__(self, dest, value):
+        self.value = value
+        self.dest = dest
+
+class OrNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class AndNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class LessThanNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class GreaterThanNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class LessOrEqualNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class GreaterOrEqualNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+class EqualNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class NotEqualNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
 
 def get_formatter():
 
@@ -202,6 +272,18 @@ def get_formatter():
         @visitor.when(AssignNode)
         def visit(self, node):
             return f'{node.dest} = {node.source}'
+        
+        @visitor.when(NotNode)
+        def visit(self, node : NotNode):
+            return f'{node.dest} = !{node.value}'
+        
+        @visitor.when(NegNode)
+        def visit(self, node : NegNode):
+            return f'{node.dest} = -{node.value}'
+
+        @visitor.when(ConcatNode)
+        def visit(self, node : ConcatNode):
+            return f'{node.dest} = CONCAT {node.left} {node.right}'
 
         @visitor.when(PlusNode)
         def visit(self, node):
@@ -218,7 +300,39 @@ def get_formatter():
         @visitor.when(DivNode)
         def visit(self, node):
             return f'{node.dest} = {node.left} / {node.right}'
+        
+        @visitor.when(OrNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} | {node.right}'
+        
+        @visitor.when(AndNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} & {node.right}'
+        
+        @visitor.when(GreaterOrEqualNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} >= {node.right}'
 
+        @visitor.when(GreaterThanNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} > {node.right}'
+
+        @visitor.when(LessOrEqualNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} <= {node.right}'
+        
+        @visitor.when(LessThanNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} < {node.right}'
+        
+        @visitor.when(NotEqualNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} != {node.right}'
+        
+        @visitor.when(EqualNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} == {node.right}'
+        
         @visitor.when(AllocateNode)
         def visit(self, node):
             return f'{node.dest} = ALLOCATE {node.type}'

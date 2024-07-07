@@ -333,3 +333,17 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
                 value = self.visit(arg)
                 self.register_function(cil.ArgNode(value))
         
+    @visitor.when(ConcatNode)
+    def visit(self, node : ConcatNode):
+        ######################################################
+        # node.left -> ExpressionNode
+        # node.right -> ExpressionNode
+        # node.operator -> String
+        ######################################################
+        
+        result = self.define_internal_local()
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        self.register_instruction(cil.ConcatNode(result, left, right))
+        
+        return result
