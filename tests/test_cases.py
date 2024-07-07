@@ -98,7 +98,7 @@ input8 =  '''
         y = rho;
         strin = "ijbhuh"; 
                       
-        retornaphi() => self.phi;            
+        retornaphi() => phi;            
     }
     x + 3;
 '''
