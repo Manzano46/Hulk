@@ -36,7 +36,8 @@ input6 = '''
             if (mod == 0) "Magic"
             elif (mod % 3 == 1) "Woke"
             else "Dumb"
-        );'''
+        );
+        '''
 
 input7 = '''
     function tan(x: Number): Number => sin(x) / cos(x);
