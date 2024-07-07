@@ -1,3 +1,17 @@
+input0 = '''
+    type Point {
+        x = 0;
+        y = 0;
+
+        getX() => self.x;
+        getY() => self.y;
+
+        setX(x) => self.x := x;
+        setY(y) => self.y := y;
+    }
+
+    let pt = new Point() in print(pt.getX())
+'''
 input1 = "let number = 42 in let text = \"The meaning of life is\" in print(text @ number);"
   
 input2 = "let a = 5, b = 1, c = 10 in { print(a+b); print(b*c); b + c/a; }"
@@ -100,7 +114,7 @@ input11 = '''
     print(\"HOLA MUNDO\")
 '''
 
-test_cases = [input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11]
+test_cases = [input0 ,input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11]
 # function tan(x: Number): Number => sin(x) / cos(x);
 
 
