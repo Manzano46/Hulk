@@ -36,7 +36,8 @@ input6 = '''
             if (mod == 0) "Magic"
             elif (mod % 3 == 1) "Woke"
             else "Dumb"
-        );'''
+        );
+        '''
 
 input7 = '''
     protocol Hashable {
@@ -111,7 +112,7 @@ input8 =  '''
         y = rho;
         strin = "ijbhuh"; 
                       
-        retornaphi() => self.phi;            
+        retornaphi() => phi;            
     }
     x + 3;
 '''

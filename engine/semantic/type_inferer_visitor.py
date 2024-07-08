@@ -43,13 +43,13 @@ class TypeInferer(object):
                     var = self.current_type.parent.param_vars[i]
                     var.infer(arg)
 
-        for attribute in node.attributes:
+        for _, attribute in node.attributes:
             self.visit(attribute)
 
-
+        const_scope = node.scope.children[0]
         for i, param_type in enumerate(self.current_type.params_type):
             param_name = self.current_type.params_names[i]
-            local_var = node.scope.find_variable(param_name)
+            local_var = const_scope.find_variable(param_name)
             local_var.type = param_type
             # Check if we could infer the param type in the body
             if param_type.is_unknow and local_var.is_param and local_var.infered_types:
@@ -69,12 +69,11 @@ class TypeInferer(object):
                 new_type = get_lca(self.current_type.param_vars[i].infered_types)
                 self.current_type.params_type[i] = new_type
                 if not new_type.is_unknow():
-                    # self.had_changed = True
                     pass
                 local_var.update_type(new_type)
 
-            # Infer the params types and return type of the methods
-        for method in node.methods:
+        # Infer the params types and return type of the methods
+        for _, method in node.methods:
             self.visit(method)
 
         self.current_type = None
@@ -99,14 +98,14 @@ class TypeInferer(object):
     
     @visitor.when(MethodDeclarationNode)
     def visit(self, node: MethodDeclarationNode):
-        self.current_method = self.current_type.get_method(node.id)
+        print("Method Declaration ", node.name)
+        self.current_method = self.current_type.get_method(node.name)
 
         method_scope: Scope = node.expr.scope
         return_type = self.visit(node.expr)
 
         if self.current_method.return_type.is_unknow() and not self.current_method.return_type.is_error() and (
                not return_type.is_unknow() or return_type.is_error()):
-            # self.had_changed = True
             self.current_method.return_type = return_type
 
         # Check if we could infer some params types
@@ -123,9 +122,8 @@ class TypeInferer(object):
                     new_type = ErrorType()
 
                 self.current_method.param_types[i] = new_type
-                # if not isinstance(new_type, types.AutoType):
-                #     self.had_changed = True
                 local_var.update_type(new_type)
+
             # Check if we could infer the param type in a call
             if (self.current_method.param_types[i].is_unknow()
                     and self.current_method.param_vars[i].infered_types):
@@ -134,8 +132,8 @@ class TypeInferer(object):
                 if not new_type.is_unknow():
                     self.had_changed = True
                 local_var.update_type(new_type)
-        self.current_method = None
 
+        self.current_method = None
         return return_type
     
 
@@ -348,6 +346,7 @@ class TypeInferer(object):
 
     @visitor.when(AttributeCallNode)
     def visit(self, node: AttributeCallNode):
+        print('attr call node')
         obj_type: Type = self.visit(node.obj)
 
         if obj_type.is_error():

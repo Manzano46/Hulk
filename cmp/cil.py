@@ -99,13 +99,17 @@ class TypeOfNode(InstructionNode):
         self.dest = dest
 
 class LabelNode(InstructionNode):
-    pass
+    def __init__(self, name):
+        self.name = name
 
 class GotoNode(InstructionNode):
-    pass
+    def __init__(self, label):
+        self.label = label
 
 class GotoIfNode(InstructionNode):
-    pass
+    def __init__(self, condition, label):
+        self.condition = condition
+        self.label = label
 
 class StaticCallNode(InstructionNode):
     def __init__(self, function, dest):
@@ -135,7 +139,10 @@ class LengthNode(InstructionNode):
     pass
 
 class ConcatNode(InstructionNode):
-    pass
+    def __intit__(self, dest, left, right):
+        self.dest = dest
+        self.left = left
+        self.right = right
 
 class PrefixNode(InstructionNode):
     pass
@@ -155,6 +162,73 @@ class ReadNode(InstructionNode):
 class PrintNode(InstructionNode):
     def __init__(self, str_addr):
         self.str_addr = str_addr
+    
+class NotNode(InstructionNode):
+    def __inti__(self, dest, value):
+        self.value = value
+        self.dest = dest
+
+
+class NegNode(InstructionNode):
+    def __inti__(self, dest, value):
+        self.value = value
+        self.dest = dest
+
+class OrNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class AndNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class LessThanNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class GreaterThanNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class LessOrEqualNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class GreaterOrEqualNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+class EqualNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
+class NotEqualNode(InstructionNode):
+    def __init__(self, dest, left, right):
+        self.left = left
+        self.right = right
+        self.dest = dest
+
+
 
 def get_formatter():
 
@@ -185,6 +259,7 @@ def get_formatter():
 
         @visitor.when(FunctionNode)
         def visit(self, node):
+            print(node.instructions)
             params = '\n\t'.join(self.visit(x) for x in node.params)
             localvars = '\n\t'.join(self.visit(x) for x in node.localvars)
             instructions = '\n\t'.join(self.visit(x) for x in node.instructions)
@@ -202,6 +277,18 @@ def get_formatter():
         @visitor.when(AssignNode)
         def visit(self, node):
             return f'{node.dest} = {node.source}'
+        
+        @visitor.when(NotNode)
+        def visit(self, node : NotNode):
+            return f'{node.dest} = !{node.value}'
+        
+        @visitor.when(NegNode)
+        def visit(self, node : NegNode):
+            return f'{node.dest} = -{node.value}'
+
+        @visitor.when(ConcatNode)
+        def visit(self, node : ConcatNode):
+            return f'{node.dest} = CONCAT {node.left} {node.right}'
 
         @visitor.when(PlusNode)
         def visit(self, node):
@@ -215,10 +302,50 @@ def get_formatter():
         def visit(self, node):
             return f'{node.dest} = {node.left} * {node.right}'
 
+        @visitor.when(ModNode)
+        def visit(self, node : ModNode):
+            return f'{node.dest} = {node.left} % {node.right}'
+        
+        @visitor.when(PowNode)
+        def visit(self, node : PowNode):
+            return f'{node.dest} = {node.left} ^ {node.right}'
+
         @visitor.when(DivNode)
         def visit(self, node):
             return f'{node.dest} = {node.left} / {node.right}'
+        
+        @visitor.when(OrNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} | {node.right}'
+        
+        @visitor.when(AndNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} & {node.right}'
+        
+        @visitor.when(GreaterOrEqualNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} >= {node.right}'
 
+        @visitor.when(GreaterThanNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} > {node.right}'
+
+        @visitor.when(LessOrEqualNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} <= {node.right}'
+        
+        @visitor.when(LessThanNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} < {node.right}'
+        
+        @visitor.when(NotEqualNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} != {node.right}'
+        
+        @visitor.when(EqualNode)
+        def visit(self, node):
+            return f'{node.dest} = {node.left} == {node.right}'
+        
         @visitor.when(AllocateNode)
         def visit(self, node):
             return f'{node.dest} = ALLOCATE {node.type}'
@@ -251,6 +378,17 @@ def get_formatter():
         def visit(self, node):
             return f'{node.dest} = LOAD {node.msg}'
         
+        @visitor.when(LabelNode)
+        def visit(self, node):
+            return f'LABEL {node.name}'
+        
+        @visitor.when(GotoNode)
+        def visit(self, node):
+            return f'GOTO {node.label}'
+        
+        @visitor.when(GotoIfNode)
+        def visit(self, node : GotoIfNode):
+            return f'IF {node.condition} GOTO {node.label}'
 
     printer = PrintVisitor()
     return (lambda ast: printer.visit(ast))

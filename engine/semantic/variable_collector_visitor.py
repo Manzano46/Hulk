@@ -32,21 +32,22 @@ class VarCollector:
         if self.current_type.is_error():
             return
         
+        const_scope = scope.create_child()
+
         for param in node.params:
             if param.type == None:
-                scope.define_variable(param.lex, UnknowType())
+                const_scope.define_variable(param.lex, UnknowType())
             else:
-                scope.define_variable(param.lex, param.type)
-
-        scope.define_variable('self', self.current_type)
+                const_scope.define_variable(param.lex, param.type)
 
         for expr in node.parent_args:
-            self.visit(expr, scope.create_child())
+            self.visit(expr, const_scope.create_child())
 
-        for attribute in node.attributes:
-            self.visit(attribute, scope.create_child())
-            
-        for method in node.methods:
+        for _, attribute in node.attributes:
+            self.visit(attribute, const_scope.create_child())
+        
+        scope.define_variable('self', self.current_type)    
+        for _, method in node.methods:
             self.visit(method, scope.create_child())
 
     @visitor.when(AttributeDeclarationNode)
