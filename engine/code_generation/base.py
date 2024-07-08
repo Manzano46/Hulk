@@ -43,7 +43,7 @@ class BaseHulkToCILVisitor:
             return self.main
     
     def find(self, name):
-        print(self.function.vars)
+        #print(self.function.vars)
         return self.function.vars[name]
         
     def register_local(self, vinfo):

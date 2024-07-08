@@ -65,7 +65,7 @@ def get_ast_printer():
         
             methods = ''.join('\n' + self.visit(feature, tabs + 1) for name,feature in node.methods)
             attribute = ''.join('\n' + self.visit(feature, tabs + 1) for name,feature in node.attributes)
-            return f'{ans}\n{params}\n{attribute}\n{methods}'
+            return f'{ans}\n params \n{params}\n attributes \n{attribute}\n methods \n{methods}'
         
         @visitor.when(ProtocolDeclarationNode)
         def visit(self, node, tabs=0):

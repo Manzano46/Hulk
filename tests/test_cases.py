@@ -99,9 +99,9 @@ input8 =  '''
         y = rho;
         strin = "ijbhuh"; 
                       
-        retornaphi() => phi;            
+        retornaphi() => x;            
     }
-    x + 3;
+    1;
 '''
 
 

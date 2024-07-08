@@ -27,7 +27,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.ReturnNode(0))
         self.current_function = None
         
-        print(node.expression)
+       # print(node.expression)
         self.register_instruction(cil.ReturnNode(self.visit(node.expression)))
         
         for feature in node.declarations: 
@@ -61,20 +61,26 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         
         self.current_function : cil.FunctionNode = self.register_function(function_name)
         
-        param_self = self.register_param('self')
+        
+        param_self = self.register_param(VariableInfo('self', self.current_type))
+        #print('aquiiiiii ', self.current_type.params)
+        for param in node.params:
+            print( ' hereeeee ',param, param.lex)
+            print(node.scope.find_variable(param.lex))
+            self.register_param(node.scope.find_variable(param.lex))
         
         # llamar constructor del padre
         result = self.define_internal_local()
         self.register_instruction(cil.DynamicCallNode(self.current_type.parent, '_init_', result))
         
-        for attribute in node.attributes:
+        for name, attribute in node.attributes:
             value = self.visit(attribute)
-            self.register_instruction(cil.SetAttribNode(param_self, attribute.name, value))
+            self.register_instruction(cil.SetAttribNode(param_self, name, value))
         
         self.register_instruction(cil.ReturnNode(param_self))
         self.current_function = None
         
-        for method in node.methods:
+        for name,method in node.methods:
             self.visit(method)
         
         self.current_type = None
@@ -87,12 +93,9 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         # node.attribute_type -> Type
         ######################################################
         
-        
-        obj = self.register_local(node.name)
         value = self.visit(node.expr)
-        self.register_instruction(cil.AssignNode(obj, value))
+        return value
         
-        return obj
     
     @visitor.when(MethodDeclarationNode)
     def visit(self, node : MethodDeclarationNode):
@@ -110,7 +113,9 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.current_function : cil.FunctionNode = self.register_function(function_name)
         
         for param in node.params:
-            self.register_param(param.lex)
+            var = node.scope.find_variable(param.lex)
+            #print(var)
+            self.register_param(var)
             
         value = self.visit(node.expr)
         self.register_instruction(cil.ReturnNode(value))
@@ -150,7 +155,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         for declaration in node.var_declarations:
             self.visit(declaration)
             
-        print(node.expr, 'aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
+        #(node.expr, 'aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
         return self.visit(node.expr)
     
     @visitor.when(PlusNode)
@@ -258,7 +263,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         # node.lex -> string
         ######################################################
         
-        print('string')
+        #print('string')
         
         var = self.find_cte(node.lex)
         if var == None:
@@ -325,7 +330,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         # node.idx -> string
         # node.args -> [ExpressionNode ...]
         ######################################################
-        print('functionCall')
+        #print('functionCall')
         if node.idx == 'print':
             self.register_instruction(cil.PrintNode(self.visit(node.args[0])))
         else:
@@ -361,7 +366,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         
         for (it,(condition, expression)) in enumerate(node.condition_expression_list):
             cond = self.visit(condition)
-            print(cond, condition)
+            #print(cond, condition)
             
             self.register_instruction(cil.GotoIfNode(cond, f'label_{self.labels}' ))
             #dif = self.labels - it
