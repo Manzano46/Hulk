@@ -171,16 +171,17 @@ type_decl %= type_ + idx + opar + params + cpar + inherits + idx + opar + args +
 attribute %= idx + equal + expr, lambda h,s : AttributeDeclarationNode(s[1],s[3]) #            attribute -> name = expression
 attribute %= idx + colon + idx + equal + expr, lambda h,s : AttributeDeclarationNode(s[1],s[5],s[3]) #    | name : type = expression
 
-# Protocoles
-protocol_decl %= protocol + idx + opcur + clcur, lambda h,s : ProtocolDeclarationNode(s[2]) #                                  protocol -> protocol name {}
-protocol_decl %= protocol + idx + opcur + pro_meths + clcur, lambda h,s : ProtocolDeclarationNode(s[2], s[4]) #                          | protocol name {meth meth ...}
+# Protocoles        
+protocol_decl %= protocol + idx + opcur  + clcur, lambda h,s : ProtocolDeclarationNode(s[2], [],None) #           protocol ->  protocol name {}                    
+protocol_decl %= protocol + idx + opcur + pro_meths + clcur, lambda h,s : ProtocolDeclarationNode(s[2], s[4],None) #           protocol ->  protocol name {meth meth ...}
 protocol_decl %= protocol + idx + extends + idx + opcur + pro_meths + clcur, lambda h,s : ProtocolDeclarationNode(s[2], s[6], s[4]) #    | protocol name extends name {meth meth ...}
+protocol_decl %= protocol + idx + extends + idx + opcur + clcur, lambda h,s : ProtocolDeclarationNode(s[2], [], s[4]) #    | protocol name extends name {}
 
-pro_meths %= pro_meth, lambda h,s : [s[1]] #                     pro_meths -> pro_meth
-pro_meths %= pro_meth + semi + pro_meths, lambda h,s : [s[1]] + s[2] #      | pro_meth ; pro_meth ...
+pro_meths %= pro_meth + semi, lambda h,s : [s[1]] #              pro_meths -> pro_meth ;
+pro_meths %= pro_meth + semi +  pro_meths, lambda h,s : [s[1]] + s[2] #      | pro_meth ; pro_meth ...
 
-pro_meth %= idx + opar + cpar + colon + idx, lambda h,s : MethodSignatureDeclarationNode(s[1], [], s[5]) #            pro_meth -> name () : type
-pro_meth %= idx + opar + id_id_list + cpar + colon + idx, lambda h,s : MethodSignatureDeclarationNode(s[1], s[3], s[6]) #       | name ( name : type, name : type , ...) : type
+pro_meth %= idx + opar + cpar + colon + idx , lambda h,s : MethodSignatureDeclarationNode(s[1], [], s[5]) #            pro_meth -> name () : type 
+pro_meth %= idx + opar + id_id_list + cpar + colon + idx , lambda h,s : MethodSignatureDeclarationNode(s[1], s[3], s[6]) #       | name ( name : type, name : type , ...) : type 
 
 id_id_list %= idx + colon + idx, lambda h,s : [VariableNode(s[1], s[3])] #                 id_id_list -> name : type
 id_id_list %= idx + colon + idx + comma + id_id_list, lambda h,s : [VariableNode(s[1], s[3])] + s[5] # | name : type, name : type , ...

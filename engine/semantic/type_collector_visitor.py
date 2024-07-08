@@ -16,8 +16,6 @@ class TypeCollector(object):
     def visit(self, node : ProgramNode):
         self.context = Context()
 
-        self.context.types['Unknown'] = UnknowType()
-
         object_type = self.context.create_type('Object')
 
         number_type = self.context.create_type('Number')

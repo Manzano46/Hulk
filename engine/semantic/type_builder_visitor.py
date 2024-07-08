@@ -20,11 +20,11 @@ class TypeBuilder:
         for declaration in node.declarations:
             self.visit(declaration)
 
-        # if self.context.cyclic_type_inheritance():
-        #     self.errors.append(SemanticError('There is cyclic inheritance of types'))
+        if self.context.cyclic_type_inheritance():
+            self.errors.append(SemanticError('There is cyclic inheritance of types'))
 
-        # if self.context.cyclic_protocol_inheritance():
-        #     self.errors.append(SemanticError('There is cyclic inheritance of protocols'))
+        if self.context.cyclic_protocol_inheritance():
+            self.errors.append(SemanticError('There is cyclic inheritance of protocols'))
 
         self.visit(node.expression)
         return self.errors, self.context
