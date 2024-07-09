@@ -99,7 +99,7 @@ class TypeInferer(object):
     
     @visitor.when(MethodDeclarationNode)
     def visit(self, node: MethodDeclarationNode):
-        print("Method Declaration ", node.name)
+        #print("Method Declaration ", node.name)
         self.current_method = self.current_type.get_method(node.name)
 
         method_scope: Scope = node.expr.scope
@@ -347,7 +347,7 @@ class TypeInferer(object):
 
     @visitor.when(AttributeCallNode)
     def visit(self, node: AttributeCallNode):
-        print('attr call node')
+        #print('attr call node')
         obj_type: Type = self.visit(node.obj)
 
         if obj_type.is_error():

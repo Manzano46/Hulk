@@ -59,8 +59,8 @@ input7 = '''
     }
 
     type Person(first, last) {
-        firstname = firstname;
-        lastname = lastname;
+        firstname = first;
+        lastname = last;
 
         name() => self.firstname @@ self.lastname;
     }
@@ -105,7 +105,7 @@ input8 =  '''
         y = rho;
         strin = "ijbhuh"; 
                       
-        retornaphi() => x;            
+        retornaphi() => self.x;            
     }
     1;
 '''
