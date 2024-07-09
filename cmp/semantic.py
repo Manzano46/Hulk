@@ -1,5 +1,6 @@
 import itertools as itt
 from collections import OrderedDict
+from engine.language.ast_nodes import ExpressionNode
 
 
 class SemanticError(Exception):
@@ -182,7 +183,7 @@ class ErrorProtocol(Protocol):
 
 
 class Type:
-    def __init__(self, name:str):
+    def __init__(self, name:str, curr_node=None):
         self.name = name
         self.attributes = []
         self.methods = []
@@ -190,6 +191,7 @@ class Type:
         self.params_type = []
         self.parent: Type = None
         self.param_vars : list[VariableInfo] = []
+        self.curr_node = curr_node
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -543,6 +545,7 @@ class VariableInfo:
         self.type: Type = vtype
         self.is_param: bool = is_param
         self.infered_types: list[Type] = []
+        self.value
 
     def update_type(self, t: Type):
         self.type =  t
@@ -569,6 +572,24 @@ class VariableInfo:
 
         return errors
 
+class Function:
+    def __init__(
+        self, name, param_names, param_types, return_type, current_node=None, body=None
+    ):
+        self.name = name
+        self.param_names = param_names
+        self.param_types = param_types
+        self.return_type = return_type
+        self.body: ExpressionNode = body
+        self.current_node = current_node
+
+    def __eq__(self, other):
+        return (
+            other.name == self.name
+            and other.return_type == self.return_type
+            and other.param_types == self.param_types
+        )
+
 class Scope:
     def __init__(self, parent = None):
         self.locals: list[VariableInfo] = [VariableInfo(name='PI', vtype= NumberType()), VariableInfo(name='E', vtype=NumberType())]
@@ -594,9 +615,12 @@ class Scope:
         return child
 
     def define_variable(self, vname, vtype, is_param=False):
-        info = VariableInfo(vname, vtype, is_param)
-        self.locals.append(info)
-        return info
+        x = self.find_variable(vname)
+        if not self.find_variable(vname):
+            info = VariableInfo(vname, vtype, is_param)
+            self.locals.append(info)
+            return info
+        return x
 
     def find_variable(self, vname, index=None):
         # print("buscando variable ",vname )

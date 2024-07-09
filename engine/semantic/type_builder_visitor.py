@@ -102,6 +102,7 @@ class TypeBuilder:
             params_names.append(param.lex)
             params_types.append(param_type)
 
+        #print('buscando el tipo de retorno ' + node.return_type)
         if node.return_type == None:
             return_type = UnknowType() 
         else : 
@@ -114,6 +115,7 @@ class TypeBuilder:
             self.current_type.define_method(node.name, params_names, params_types, return_type)
         except SemanticError as e:
             self.errors.append(e)
+        #print('el tipo de retorno asaignado es ' + return_type.name)
 
     @visitor.when(ProtocolDeclarationNode)
     def visit(self, node: ProtocolDeclarationNode):
