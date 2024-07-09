@@ -168,6 +168,17 @@ input15 = '''
                 print(x);
 '''
 
+input16 = '''
+    type Est {
+        nota = 2;
+
+        calc(self) => self.nota;
+    }
+
+    let x: Object = 5 in x:= new Est();
+'''
+
+
 test_cases = [
     input0,
     input1, input2, input3, 
@@ -175,7 +186,7 @@ test_cases = [
     input7, input8, 
     input9, input10, 
     input11, input12, input13,
-    input14 ,input15,
+    input14 ,input15,input16
 ]
 # function tan(x: Number): Number => sin(x) / cos(x);
 

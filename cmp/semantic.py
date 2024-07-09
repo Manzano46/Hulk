@@ -261,6 +261,8 @@ class Type:
                 except SemanticError:
                     return False
         else:
+            if other.name == 'Object':
+                return True
             return other.bypass() or self == other or (self.parent is not None and self.parent.conforms_to(other))
 
     def bypass(self):
