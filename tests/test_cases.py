@@ -148,8 +148,37 @@ input12 = '''
     1
 '''
 
-test_cases = [input0 ,input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12]
+input13 = '''
+    let a = 10 in while (a >= 0) {
+        print(a);
+        a := a - 1;
+    }
+'''
+input14 = '''
+    function fib(n) {
+        if (n==0 | n==1) 1 else fib(n-1) + fib(n-2);
+    }
+    let x = fib(5) in print(x);
+'''
+
+input15 = '''
+    let iterable = range(0, 10) in
+        while (iterable.next())
+            let x = iterable.current() in
+                print(x);
+'''
+
+test_cases = [
+    input0,
+    input1, input2, input3, 
+    input4,input5, input6, 
+    input7, input8, 
+    input9, input10, 
+    input11, input12, input13,
+    input14 ,input15,
+]
 # function tan(x: Number): Number => sin(x) / cos(x);
+
 
 
 # function tan(x: Number: Number => sin(x / cos(x;

@@ -10,6 +10,9 @@ def get_lca(types: list[Type]) -> Type:
     if any(t.is_unknow() for t in types):
         return UnknowType()
     
+    if(len(types) == 1):
+        return types[0]
+    
     lca = types[0]
     for typex in types[1:]:
         lca = _get_lca(lca, typex)
