@@ -78,4 +78,5 @@ def semantic_analysis_pipeline(ast, debug=False):
         print(context)
         print('Scope:')
         print(scope)
+        
     return ast, errors, context, scope

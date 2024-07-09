@@ -122,6 +122,30 @@ class Protocol:
         self.methods.append(method)
         return method
     
+    def implements(self, other):
+        if not isinstance(other, Protocol):
+            return False
+        
+        try:
+            return all(
+                method.can_substitute_with(self.get_method(method.name)) for method in other.methods
+            )
+        
+        except SemanticError:
+            return False
+
+    def conforms_to(self, other):
+        if other == ObjectType():
+            return True
+        
+        elif isinstance(other, Type):
+            return False
+        
+        elif self == other:
+            return True
+        
+        return self.implements(other)
+    
     def __str__(self):
         output = f'protocol {self.name}'
         parent = '' if self.parent is None else f' : {self.parent.name}'
