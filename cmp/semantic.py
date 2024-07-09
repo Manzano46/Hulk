@@ -138,6 +138,7 @@ class Protocol:
     
     def is_error(self):
         return False
+    
 
 class ErrorProtocol(Protocol):
     def __init__(self):
@@ -230,7 +231,13 @@ class Type:
         return plain.values() if clean else plain
 
     def conforms_to(self, other):
-        return other.bypass() or self == other or (self.parent is not None and self.parent.conforms_to(other))
+        if isinstance(other,Protocol):
+                try:
+                    return all(method.can_substitute_with(self.get_method(method.name)) for method in other.methods)
+                except SemanticError:
+                    return False
+        else:
+            return other.bypass() or self == other or (self.parent is not None and self.parent.conforms_to(other))
 
     def bypass(self):
         return False
