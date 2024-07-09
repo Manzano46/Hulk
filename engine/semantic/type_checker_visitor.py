@@ -114,7 +114,7 @@ class TypeChecker(object):
 
     @visitor.when(FunctionDeclarationNode)
     def visit(self, node: FunctionDeclarationNode):
-        print('revisando function declaration ' + node.name)
+        # print('revisando function declaration ' + node.name)
         function: Method = self.context.get_function(node.id)
 
         infered_return_type = self.visit(node.expr)

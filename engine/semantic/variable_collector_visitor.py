@@ -35,10 +35,11 @@ class VarCollector:
         const_scope = scope.create_child()
 
         for param in node.params:
-            if param.type == None:
-                const_scope.define_variable(param.lex, UnknowType())
-            else:
-                const_scope.define_variable(param.lex, param.type)
+            param_type = UnknowType()
+            if param.type != None:
+                param_type = param.type
+            const_scope.define_variable(param.lex, param_type)
+            self.current_type.param_vars.append(VariableInfo(param.lex, param_type))
 
         for expr in node.parent_args:
             self.visit(expr, const_scope.create_child())
