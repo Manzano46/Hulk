@@ -1,7 +1,7 @@
 import sys
 from typing import List
 
-import dill
+#import dill
 
 import engine.language.grammar as grammar
 from engine.lexer.hulk_lexer import TokenType

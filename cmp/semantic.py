@@ -297,6 +297,7 @@ class ErrorType(Type):
 class UnknowType(Type):
     def __init__(self):
         Type.__init__(self, 'Unknow')
+        self.parent = ObjectType()
 
     def __eq__(self, other:Type):
         return isinstance(other, UnknowType) or other.name == self.name
@@ -328,12 +329,12 @@ class ObjectType(Type):
     def __eq__(self, other):
         return isinstance(other, ObjectType) or other.name == self.name
 
-class IntType(Type):
+class NumberType(Type):
     def __init__(self):
-        Type.__init__(self, 'int')
+        Type.__init__(self, 'Number')
 
     def __eq__(self, other):
-        return other.name == self.name or isinstance(other, IntType)
+        return other.name == self.name or isinstance(other, NumberType)
     
 class BooleanType(Type):
     def __init__(self):
@@ -537,7 +538,7 @@ class VariableInfo:
 
 class Scope:
     def __init__(self, parent = None):
-        self.locals: list[VariableInfo] = []
+        self.locals: list[VariableInfo] = [VariableInfo(name='PI', vtype= NumberType()), VariableInfo(name='E', vtype=NumberType())]
         self.parent: Scope = parent
         self.children: list[Scope] = []
         self.index = 0 if parent is None else len(parent)

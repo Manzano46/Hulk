@@ -17,7 +17,7 @@ input1 = "let number = 42 in let text = \"The meaning of life is\" in print(text
 input2 = "let a = 5, b = 1, c = 10 in { print(a+b); print(b*c); b + c/a; }"
 
 input3 = '''
-    let a  = 0 in {
+    let a : String = 0 in {
         print(a);
         a := 1;
         print(a);

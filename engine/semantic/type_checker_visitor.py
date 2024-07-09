@@ -21,7 +21,7 @@ class TypeChecker(object):
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
-        print('revisando program node')
+        #print('revisando program node')
         for declaration in node.declarations:
             self.visit(declaration)
 
@@ -29,7 +29,7 @@ class TypeChecker(object):
 
     @visitor.when(TypeDeclarationNode)
     def visit(self, node: TypeDeclarationNode):
-        print('revisando tipo ' + node.name)
+        #print('revisando tipo ' + node.name)
         self.current_type = self.context.get_type(node.name)
 
         if self.current_type.is_error():
@@ -63,7 +63,7 @@ class TypeChecker(object):
 
     @visitor.when(AttributeDeclarationNode)
     def visit(self, node: AttributeDeclarationNode):
-        print('revisando atributo ' + node.name)
+        #print('revisando atributo ' + node.name)
         infered_type = self.visit(node.expr)
 
         attr_type = self.current_type.get_attribute(node.name).type
@@ -76,7 +76,7 @@ class TypeChecker(object):
 
     @visitor.when(MethodDeclarationNode)
     def visit(self, node: MethodDeclarationNode):
-        print('revisando metodo ' + node.name)
+        #print('revisando metodo ' + node.name)
         self.current_method = self.current_type.get_method(node.name)
 
         infered_type = self.visit(node.expr)
@@ -114,7 +114,7 @@ class TypeChecker(object):
 
     @visitor.when(FunctionDeclarationNode)
     def visit(self, node: FunctionDeclarationNode):
-        print('revisando function declaration ' + node.name)
+        #print('revisando function declaration ' + node.name)
         function: Method = self.context.get_function(node.id)
 
         infered_return_type = self.visit(node.expr)
@@ -136,19 +136,19 @@ class TypeChecker(object):
 
     @visitor.when(VarDeclarationNode)
     def visit(self, node: VarDeclarationNode):
-        print('revisando variable declaration '+ node.id )
+        #print('revisando variable declaration '+ node.id )
         scope = node.scope
 
         infered_type = self.visit(node.expr)
-        if node.var_type != None :
-            try :
-                var_type = self.context.get_type_or_protocol(node.var_type)
-            except SemanticError as e :
-                self.errors.append(e)
-                var_type = ErrorType()
-        else:
-            var_type = UnknowType()
-        #var_type = scope.find_variable(node.id).type
+        # if node.var_type != None :
+        #     try :
+        #         var_type = self.context.get_type_or_protocol(node.var_type)
+        #     except SemanticError as e :
+        #         self.errors.append(e)
+        #         var_type = ErrorType()
+        # else:
+        #     var_type = UnknowType()
+        var_type = scope.find_variable(node.id).type
 
         if not infered_type.conforms_to(var_type):
             error_text = SemanticError.INCOMPATIBLE_TYPES % (infered_type.name, var_type.name)
@@ -159,7 +159,7 @@ class TypeChecker(object):
 
     @visitor.when(LetInNode)
     def visit(self, node: LetInNode):
-        print('revisando let in')
+        #print('revisando let in')
         for declaration in node.var_declarations:
             self.visit(declaration)
 
@@ -198,7 +198,7 @@ class TypeChecker(object):
 
     @visitor.when(WhileNode)
     def visit(self, node: WhileNode):
-        print('revisando while')
+        #print('revisando while')
         cond_type = self.visit(node.condition)
 
         if cond_type != BooleanType():
@@ -317,7 +317,7 @@ class TypeChecker(object):
             return ErrorType()
 
         if node.obj.lex == 'self':
-            print('objeto self')
+            #print('objeto self')
             try:
                 attr = self.current_type.get_attribute(node.attribute)
                 return attr.type
@@ -465,7 +465,7 @@ class TypeChecker(object):
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode):
-        print('visistando la variable ' + node.lex)
+        #print('visistando la variable ' + node.lex)
         scope = node.scope
 
         if not scope.is_defined(node.lex):
@@ -474,12 +474,12 @@ class TypeChecker(object):
             return ErrorType()
 
         var = scope.find_variable(node.lex)
-        print('variable encontrada ' + var.name + ' del tipo ' + var.type.name)
+        #print('variable encontrada ' + var.name + ' del tipo ' + var.type.name)
         return var.type
 
     @visitor.when(TypeInstantiationNode)
     def visit(self, node: TypeInstantiationNode):
-        print('visitando type instantiation de ' + node.idx)
+        #print('visitando type instantiation de ' + node.idx)
         try:
             ttype = self.context.get_type(node.idx)
         except SemanticError as e:
