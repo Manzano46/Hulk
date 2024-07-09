@@ -44,6 +44,11 @@ class BaseHulkToCILVisitor:
     
     def find(self, name):
         #print(self.function.vars)
+        if self.current_type is not None:
+            #print(self.current_type.attributes)
+            for attribute in self.current_type.attributes:
+                if attribute.name == name:
+                    return attribute.name 
         return self.function.vars[name]
         
     def register_local(self, vinfo):

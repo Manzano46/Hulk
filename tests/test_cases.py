@@ -125,7 +125,24 @@ input11 = '''
     print(\"HOLA MUNDO\")
 '''
 
-test_cases = [input0 ,input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11]
+input12 = '''
+    type Point {
+        x = 0;
+        y = 0;
+
+        getX() => x;
+        getY() => y;
+    }
+    type PolarPoint inherits Point {
+        a = 2;
+        
+        rho() => 1;
+        
+    }
+    1
+'''
+
+test_cases = [input0 ,input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12]
 # function tan(x: Number): Number => sin(x) / cos(x);
 
 

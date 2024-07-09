@@ -49,6 +49,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         type_node = self.register_type(node.name)    
         
         for attribute, xtype in self.current_type.all_attributes():
+            
             type_node.attributes.append(attribute.name)
         
         for method, xtype in self.current_type.all_methods():
@@ -65,13 +66,13 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         param_self = self.register_param(VariableInfo('self', self.current_type))
         #print('aquiiiiii ', self.current_type.params)
         for param in node.params:
-            print( ' hereeeee ',param, param.lex)
-            print(node.scope.find_variable(param.lex))
-            self.register_param(node.scope.find_variable(param.lex))
-        
+            #print( ' hereeeee ',param, param.lex)
+            #print(node.scope.children[0].find_variable(param.lex))
+            self.register_param(node.scope.children[0].find_variable(param.lex))
+
         # llamar constructor del padre
-        result = self.define_internal_local()
-        self.register_instruction(cil.DynamicCallNode(self.current_type.parent, '_init_', result))
+        if self.current_type.parent is not None:
+            self.register_instruction(cil.DynamicCallNode(self.current_type.parent.name, '_init_', param_self))
         
         for name, attribute in node.attributes:
             value = self.visit(attribute)

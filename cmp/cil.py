@@ -397,7 +397,7 @@ def get_formatter():
         
         @visitor.when(SetAttribNode)
         def visit(self, node : SetAttribNode):
-            return f'SETATTR {node.obj} {node.attribute} = {node.value}'
+            return f'SETATTR {node.obj} {node.attribute} {node.value}'
         
 
     printer = PrintVisitor()
