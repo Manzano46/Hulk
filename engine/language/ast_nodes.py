@@ -99,7 +99,7 @@ class VarDeclarationNode(DeclarationNode):
         super().__init__()
         self.id = idx
         self.expr: ExpressionNode = expr
-        self.var_type: Type = var_type
+        self.var_type = var_type
 
 
 

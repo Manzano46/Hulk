@@ -256,6 +256,9 @@ class UnknowType(Type):
     def is_unknow(self):
         return True
     
+    def conforms_to(self, other):
+        return True
+    
 
 class VoidType(Type):
     def __init__(self):
@@ -314,7 +317,7 @@ class VectorType(Type):
     
 class SelfType(Type):
     def __init__(self, referred_type: Type = None) -> None:
-        super().__init__('Self')
+        super().__init__('self')
         self.referred_type = referred_type
 
     def get_attribute(self, name: str) -> Attribute:
@@ -352,8 +355,8 @@ class Context:
         except SemanticError:
             try:
                 type_or_protocol = self.get_protocol(name)
-            except SemanticError as e:
-                type_or_protocol = ErrorType()
+            except SemanticError :
+                raise SemanticError(f'Type or protocol "{name}" is not defined.')
         return type_or_protocol
         
     def create_protocol(self, name:str):
@@ -489,7 +492,6 @@ class Scope:
         return info
 
     def find_variable(self, vname, index=None):
-        print("buscando variable ",vname )
         locals = self.locals if index is None else itt.islice(self.locals, index)
         try:
             return next(x for x in locals if x.name == vname)
@@ -498,7 +500,6 @@ class Scope:
 
     def is_defined(self, vname):
         aux = self.find_variable(vname)
-        print(vname, aux)
         return aux is not None
 
     def is_local(self, vname):

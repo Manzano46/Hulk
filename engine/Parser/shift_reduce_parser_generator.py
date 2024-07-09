@@ -35,7 +35,7 @@ class ShiftReduceParser:
                 print(stack, '<---||--->', w[cursor:])
 
             if (state, lookahead) not in self.action:
-                raise HulkLexicographicError.UNSPECTED_TOKEN % (lookahead.Name)
+                raise HulkLexicographicError(HulkLexicographicError.UNSPECTED_TOKEN % (lookahead.Name),0,0 )
 
             action, tag = self.action[(state, lookahead)]
 
