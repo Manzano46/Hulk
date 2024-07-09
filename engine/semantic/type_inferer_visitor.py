@@ -51,8 +51,9 @@ class TypeInferer(object):
             param_name = self.current_type.params[i]
             local_var = const_scope.find_variable(param_name)
             local_var.type = param_type
+
             # Check if we could infer the param type in the body
-            if param_type.is_unknow and local_var.is_param and local_var.infered_types:
+            if param_type.is_unknow() and local_var.is_param and local_var.infered_types:
                 try:
                     new_type = get_lower_heir(local_var.infered_types, var_name=param_name)
                 except SemanticError as e:
@@ -113,6 +114,7 @@ class TypeInferer(object):
             param_name = self.current_method.param_names[i]
             local_var = method_scope.find_variable(param_name)
             local_var.type = param_type
+
             # Check if we could infer the param type in the body
             if param_type.is_unknow() and local_var.is_param and local_var.infered_types:
                 try:
@@ -144,8 +146,7 @@ class TypeInferer(object):
         return_type: Type = self.visit(node.expr)
         # print(return_type)
 
-        if function.return_type.is_unknow() and not function.return_type.is_error() and (
-                return_type.is_unknow() or return_type.is_error()):
+        if function.return_type.is_unknow() and not function.return_type.is_error() and not return_type.is_unknow():
             function.return_type = return_type
 
         expr_scope: Scope = node.expr.scope

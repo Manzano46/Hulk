@@ -139,7 +139,7 @@ class LengthNode(InstructionNode):
     pass
 
 class ConcatNode(InstructionNode):
-    def __intit__(self, dest, left, right):
+    def __init__(self, dest, left, right):
         self.dest = dest
         self.left = left
         self.right = right
@@ -259,9 +259,10 @@ def get_formatter():
 
         @visitor.when(FunctionNode)
         def visit(self, node):
-            print(node.instructions)
+            #print(node.instructions)
             params = '\n\t'.join(self.visit(x) for x in node.params)
             localvars = '\n\t'.join(self.visit(x) for x in node.localvars)
+            #print(node.instructions , 'fffffffffffffffffffffffffffffffffffffffffffff')
             instructions = '\n\t'.join(self.visit(x) for x in node.instructions)
 
             return f'function {node.name} {{\n\t{params}\n\n\t{localvars}\n\n\t{instructions}\n}}'
@@ -389,6 +390,15 @@ def get_formatter():
         @visitor.when(GotoIfNode)
         def visit(self, node : GotoIfNode):
             return f'IF {node.condition} GOTO {node.label}'
+        
+        @visitor.when(DynamicCallNode)
+        def visit(self, node : DynamicCallNode):
+            return f'{node.dest} =  VCALL {node.type} {node.method}'
+        
+        @visitor.when(SetAttribNode)
+        def visit(self, node : SetAttribNode):
+            return f'SETATTR {node.obj} {node.attribute} {node.value}'
+        
 
     printer = PrintVisitor()
     return (lambda ast: printer.visit(ast))

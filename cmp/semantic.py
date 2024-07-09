@@ -35,6 +35,15 @@ class Attribute:
 
     def __repr__(self):
         return str(self)
+    
+    def validate(self):
+        errors = []
+        if self.type.is_unknow() and not self.type.is_error():
+            errors.append(
+                SemanticError(SemanticError.CANNOT_INFER_ATTR_TYPE % self.name)
+            )
+            self.type = ErrorType()
+        return errors
 
 class Method:
     def __init__(self, name, param_names, params_types, return_type):
@@ -64,6 +73,24 @@ class Method:
             if not meth_type.conforms_to(impl_type):
                 return False
         return True
+    
+    def validate(self):
+        errors = []
+        for i, param_type in enumerate(self.param_types):
+            if param_type.is_unknow() and not param_type.is_error():
+                errors.append(
+                    SemanticError(
+                        SemanticError.CANNOT_INFER_PARAM_TYPE % (self.param_names[i], self.name)
+                    )
+                )
+                self.param_types[i] = ErrorType()
+
+        if self.return_type.is_unknow() and not self.return_type.is_error():
+            errors.append(
+                SemanticError(SemanticError.CANNOT_INFER_RETURN_TYPE % self.name)
+            )
+            self.return_type = ErrorType()
+        return errors
 
 class Protocol:
     def __init__(self,name:str):
@@ -229,6 +256,27 @@ class Type:
     
     def is_unknow(self) -> bool:
         return False
+    
+    def validate(self):
+        errors = []
+        if self.is_error():
+            return errors
+        
+        for attr in self.attributes:
+            errors.extend(attr.validate())
+
+        for method in self.methods:
+            errors.extend(method.validate())
+
+        for i, param_type in enumerate(self.params_type):
+            if param_type.is_unknow():
+                errors.append(
+                    SemanticError(
+                        SemanticError.CANNOT_INFER_PARAM_TYPE % (self.params[i], self.name)
+                    )
+                )
+                self.params_type[i] = ErrorType()
+        return errors
 
 class ErrorType(Type):
     def __init__(self):
@@ -289,7 +337,7 @@ class IntType(Type):
     
 class BooleanType(Type):
     def __init__(self):
-        Type.__init__(self, 'bool')
+        Type.__init__(self, 'Boolean')
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, BooleanType)
@@ -444,6 +492,16 @@ class Context:
         
         return False
     
+    def validate(self):
+        errors = []
+        for type_name in self.types:
+            errors.extend(self.types[type_name].validate())
+
+        for func_name in self.functions:
+            errors.extend(self.functions[func_name].validate())
+
+        return errors
+    
 
 class VariableInfo:
     def __init__(self, name, vtype, is_param = False):
@@ -460,7 +518,22 @@ class VariableInfo:
         self.infered_types.append(t)
     
     def __str__(self):
-        return f"[var] {self.name}: {self.type.name};"
+        return f"[{'param' if self.is_param else 'var'}] {self.name}: {self.type.name};"
+    
+    def validate(self):
+
+        if self.type.is_unknow() and self.is_param:
+            self.type = ErrorType()
+            return []
+
+        errors = []
+        if self.type.is_unknow() and not self.type.is_error():
+            self.type = ErrorType()
+            errors.append(
+                SemanticError(SemanticError.CANNOT_INFER_VAR_TYPE % self.name)
+            )
+
+        return errors
 
 class Scope:
     def __init__(self, parent = None):
@@ -492,6 +565,7 @@ class Scope:
         return info
 
     def find_variable(self, vname, index=None):
+        # print("buscando variable ",vname )
         locals = self.locals if index is None else itt.islice(self.locals, index)
         try:
             return next(x for x in locals if x.name == vname)
@@ -500,7 +574,18 @@ class Scope:
 
     def is_defined(self, vname):
         aux = self.find_variable(vname)
+        # print(vname, aux)
         return aux is not None
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+    
+    def validate(self):
+        errors = []
+        for local in self.locals:
+            errors.extend(local.validate())
+
+        for child_scope in self.children:
+            errors.extend(child_scope.validate())
+
+        return errors
