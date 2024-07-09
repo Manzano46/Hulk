@@ -2,6 +2,7 @@ from typing import List
 from engine.language.ast_nodes import *
 import cmp.visitor as visitor
 from cmp.semantic import *
+from engine.language.ast_nodes import *
 from engine.semantic.semantic_tools import *
 
 
@@ -38,20 +39,20 @@ class TypeChecker(object):
         for method in node.methods:
             self.visit(method)
 
-        if self.current_type.parent.is_error():
+        if self.current_type.parent == None or self.current_type.parent.is_error():
             return
         # recojo los tipos de argumento que estoy pasando a mi padre
         parent_args_types = [self.visit(expr) for expr in node.parent_args]
         # recojo los tipos de los paramentros de mi padre
-        parent_params_types = self.current_type.parent.params_type
+        parent_params_type = self.current_type.parent.params_type
         # si la cantidad de argumentos de mi padre no es la misma que la cantidad de parametros que recibe
-        if len(parent_args_types) != len(parent_params_types):
+        if len(parent_args_types) != len(parent_params_type):
             error_text = SemanticError.EXPECTED_ARGUMENTS % (
-                len(parent_params_types), len(parent_args_types), self.current_type.parent.name)
+                len(parent_params_type), len(parent_args_types), self.current_type.parent.name)
             self.errors.append(SemanticError(error_text))
             return ErrorType()
 
-        for parent_arg_type, parent_param_type in zip(parent_args_types, parent_params_types):
+        for parent_arg_type, parent_param_type in zip(parent_args_types, parent_params_type):
             if not parent_arg_type.conforms_to(parent_param_type):
                 error_text = SemanticError.INCOMPATIBLE_TYPES % (parent_arg_type.name, parent_param_type.name)
                 self.errors.append(SemanticError(error_text))
@@ -179,7 +180,7 @@ class TypeChecker(object):
 
         else_type = self.visit(node.else_expr)
 
-        return get_lowest_common_ancestor(expr_types + [else_type])
+        return get_lca(expr_types + [else_type])
 
     @visitor.when(WhileNode)
     def visit(self, node: WhileNode):
@@ -468,12 +469,12 @@ class TypeChecker(object):
 
         args_types = [self.visit(arg) for arg in node.args]
 
-        if len(args_types) != len(ttype.params_types):
-            error_text = SemanticError.EXPECTED_ARGUMENTS % (len(ttype.params_types), len(args_types), ttype.name)
+        if len(args_types) != len(ttype.params_type):
+            error_text = SemanticError.EXPECTED_ARGUMENTS % (len(ttype.params_type), len(args_types), ttype.name)
             self.errors.append(SemanticError(error_text))
             return ErrorType()
 
-        for arg_type, param_type in zip(args_types, ttype.params_types):
+        for arg_type, param_type in zip(args_types, ttype.params_type):
             if not arg_type.conforms_to(param_type):
                 error_text = SemanticError.INCOMPATIBLE_TYPES % (arg_type.name, param_type.name)
                 self.errors.append(SemanticError(error_text))
@@ -484,7 +485,7 @@ class TypeChecker(object):
     @visitor.when(VectorInitializationNode)
     def visit(self, node: VectorInitializationNode):
         elements_types = [self.visit(element) for element in node.elements]
-        lca = get_lowest_common_ancestor(elements_types)
+        lca = get_lca(elements_types)
 
         if lca.is_error():
             return ErrorType()

@@ -1,13 +1,13 @@
 input0 = '''
     type Point {
-        x = 0;
-        y = 0;
+        x : Number = 0;
+        y : Number = 0;
 
-        getX() => self.x;
-        getY() => self.y;
-
-        setX(x) => self.x := x;
-        setY(y) => self.y := y;
+        getX() : Number => self.x;
+        getY() : Number => self.y;
+        
+        setX(x) : Void => self.x := x;
+        setY(y) : Void => self.y := y;
     }
 
     let pt = new Point() in print(pt.getX())
@@ -40,8 +40,10 @@ input6 = '''
         '''
 
 input7 = '''
+    
     function tan(x: Number): Number => sin(x) / cos(x);
-    type Point {
+
+    type Point inherits PolarPoint {
         x = 0;
         y = 0;
 
@@ -51,24 +53,28 @@ input7 = '''
         setX(x) => self.x := x;
         setY(y) => self.y := y;
     }
+
     type PolarPoint inherits Point {
         rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2);
-        
     }
-    type Person(firstname, lastname) {
+
+    type Person(first, last) {
         firstname = firstname;
         lastname = lastname;
 
         name() => self.firstname @@ self.lastname;
     }
+
     function gcd(a, b) => while (a > 0)
         let m = a % b in {
             b := a;
             a := m;
         };
+
     type Knight inherits Person {
         name() => "Sir" @@ base();
     }
+
     let a = 10 in while (a >= 0) {
         print(a);
         for (x in range(0, 10)) print(x);

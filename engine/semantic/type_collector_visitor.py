@@ -16,9 +16,10 @@ class TypeCollector(object):
     def visit(self, node : ProgramNode):
         self.context = Context()
 
-        self.context.types['Unknown'] = UnknowType()
-
         object_type = self.context.create_type('Object')
+
+        void_type = self.context.create_type('Void')
+        void_type.parent = object_type
 
         number_type = self.context.create_type('Number')
         number_type.parent = object_type
@@ -71,8 +72,9 @@ class TypeCollector(object):
             self.errors.append(e)
 
     @visitor.when(ProtocolDeclarationNode)
-    def visit(self, node):
+    def visit(self, node:ProtocolDeclarationNode):
         try:
             self.context.create_protocol(node.idx)
         except SemanticError as e:
             self.errors.append(e)
+

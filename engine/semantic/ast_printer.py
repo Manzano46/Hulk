@@ -70,9 +70,12 @@ def get_ast_printer():
         @visitor.when(ProtocolDeclarationNode)
         def visit(self, node, tabs=0):
             ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
-            child = self.visit(node.method_signature, tabs + 1)
+            children = '\t' * (tabs + 1) 
+            for method in node.methods_signature:
+                child = self.visit(method, tabs + 1)
+                children += '\n' + child
             
-            return f'{ans}\n{child}'
+            return f'{ans}\n{children}'
         
         @visitor.when(VarDeclarationNode)
         def visit(self, node, tabs=0):
