@@ -149,8 +149,8 @@ feature %= meth, lambda h,s : s[1] #                      | method
 func_decl %= func + idx + opar + params + cpar + body, lambda h,s : FunctionDeclarationNode(s[2], s[4], s[6]) # function_declaration -> function name (params) body
 func_decl %= func + idx + opar + params + cpar + colon + idx + body, lambda h,s : FunctionDeclarationNode(s[2], s[4], s[8], s[7]) #            | function name (params) return_type body
 
-meth %= idx + opar + params + cpar + body, lambda h,s : MethodDeclarationNode(s[1], s[3], s[5]) # method_declaration -> name (params) body
-meth %= idx + opar + params + cpar + colon + idx + body, lambda h,s : MethodDeclarationNode(s[1], s[3], s[6], s[5]) #         | name (params) : return_type body
+meth %= idx + opar + params + cpar + body, lambda h,s : MethodDeclarationNode(s[1], s[3], s[5]) #         method_declaration -> name (params) body
+meth %= idx + opar + params + cpar + colon + idx + body, lambda h,s : MethodDeclarationNode(s[1], s[3], s[7], s[6]) #         | name (params) : return_type body
 
 params %= param, lambda h,s : [s[1]] #                      params -> param
 params %= param + comma + params, lambda h,s : [s[1]] + s[3] #      | param , param ....

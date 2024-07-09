@@ -6,6 +6,24 @@ class SemanticError(Exception):
     @property
     def text(self):
         return self.args[0]
+    
+    INVALID_NAME = 'The \'%s\' named : \'%s\' already exist in scope.'
+    UNDEFINED = 'The \'%s\' named : \'%s\' is not defined.'
+    DOUBLE_INHERITANCE = 'The \'%s\' named : \'%s\' already has a parent assigned.'
+    WRONG_SIGNATURE = 'Method \'%s\' already defined in an ancestor with a different signature.'
+    SELF_IS_READONLY = 'Variable "self" is read-only.'
+    INCOMPATIBLE_TYPES = 'Cannot convert \'%s\' into \'%s\'.'
+    INVALID_OPERATION = 'Operation \'%s\' is not defined between \'%s\' and \'%s\'.'
+    INVALID_UNARY_OPERATION = 'Operation \'%s\' is not defined for \'%s\'.'
+    INCONSISTENT_USE = 'Inconsistent use of \'%s\'.'
+    EXPECTED_ARGUMENTS = 'Expected %s arguments, but got %s in \'%s\'.'
+    CANNOT_INFER_PARAM_TYPE = 'Cannot infer type of parameter \'%s\' in \'%s\'. Please specify it.'
+    CANNOT_INFER_ATTR_TYPE = 'Cannot infer type of attribute \'%s\'. Please specify it.'
+    CANNOT_INFER_RETURN_TYPE = 'Cannot infer return type of \'%s\'. Please specify it.'
+    CANNOT_INFER_VAR_TYPE = 'Cannot infer type of variable \'%s\'. Please specify it.'
+    BASE_OUTSIDE_METHOD = 'Cannot use "base" outside of a method.'
+    METHOD_NOT_DEFINED = 'Method \'%s\' is not defined in any ancestor.'
+
 
 class Attribute:
     def __init__(self, name, typex):
@@ -34,7 +52,18 @@ class Method:
         return other.name == self.name and \
             other.return_type == self.return_type and \
             other.param_types == self.param_types
-
+    
+    def can_substitute_with(self, other):
+        if self.name != other.name:
+            return False
+        if not other.return_type.conforms_to(self.return_type):
+            return False
+        if len(self.param_types) != len(other.param_types):
+            return False
+        for meth_type, impl_type in zip(self.param_types, other.param_types):
+            if not meth_type.conforms_to(impl_type):
+                return False
+        return True
 
 class Protocol:
     def __init__(self,name:str):
@@ -44,7 +73,7 @@ class Protocol:
 
     def set_parent(self,parent):
         if self.parent is not None:
-            raise SemanticError.DOUBLE_INHERITANCE%('protocol', self.name)
+            raise SemanticError.DOUBLE_INHERITANCE % ('protocol', self.name)
         self.parent = parent
 
     def get_method(self, name:str):
@@ -66,7 +95,21 @@ class Protocol:
         self.methods.append(method)
         return method
     
+    def __str__(self):
+        output = f'protocol {self.name}'
+        parent = '' if self.parent is None else f' : {self.parent.name}'
+        output += parent
+        output += ' {'
+        output += '\n\t' if self.methods else ''
+        output += '\n\t'.join(str(x) for x in self.methods)
+        output += '\n' if self.methods else ''
+        output += '}\n'
+        return output
+
     def bypass(self):
+        return False
+    
+    def is_error(self):
         return False
 
 class ErrorProtocol(Protocol):
@@ -94,11 +137,18 @@ class Type:
         self.params = []
         self.params_type = []
         self.parent: Type = None
+        self.param_vars : list[VariableInfo] = []
 
     def set_parent(self, parent):
         if self.parent is not None:
             raise SemanticError(f'Parent type is already set for {self.name}.')
         self.parent = parent
+
+    def set_param(self, name:str, type):
+        if name in self.params:
+            raise SemanticError(f'Param name is already set for {self.name}.')
+        self.params.append(name)
+        self.params_type.append(type)
 
     def get_attribute(self, name:str):
         try:
@@ -153,7 +203,7 @@ class Type:
         return plain.values() if clean else plain
 
     def conforms_to(self, other):
-        return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
+        return other.bypass() or self == other or (self.parent is not None and self.parent.conforms_to(other))
 
     def bypass(self):
         return False
@@ -200,7 +250,7 @@ class UnknowType(Type):
     def __init__(self):
         Type.__init__(self, 'Unknow')
 
-    def __eq__(self, other):
+    def __eq__(self, other:Type):
         return isinstance(other, UnknowType) or other.name == self.name
     
     def is_unknow(self):
@@ -286,26 +336,23 @@ class Context:
 
     def create_type(self, name:str) -> Type:
         if name in self.types:
-            raise SemanticError(f'Type with the same name ({name}) already in context.')
+            raise SemanticError.INVALID_NAME%('type', name)
         typex = self.types[name] = Type(name)
         return typex
 
     def get_type(self, name:str) -> Type:
-        #print('buscando entre los tipos a ' + name)
         try:
             return self.types[name]
         except KeyError:
             raise SemanticError(f'Type "{name}" is not defined.')
         
     def get_type_or_protocol(self, name:str):
-        #print('buscando entre los protocolos y los tipos a ' + name)
         try:
             type_or_protocol = self.get_type(name)
         except SemanticError:
             try:
                 type_or_protocol = self.get_protocol(name)
             except SemanticError as e:
-                # self.errors.append(e)
                 type_or_protocol = ErrorType()
         return type_or_protocol
         
@@ -316,7 +363,6 @@ class Context:
         return protocolx
     
     def get_protocol(self, name:str):
-        #print('buscando entre los protocolos a ' + name)
         try:
             return self.protocols[name]
         except KeyError:
@@ -341,7 +387,10 @@ class Context:
 
 
     def __str__(self):
-        return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
+        output = '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
+        output += '{\n\t' + '\n\t'.join(y for x in self.protocols.values() for y in str(x).split('\n')) + '\n}'
+        output += '{\n\t' + '\n\t'.join(y for x in self.functions.values() for y in str(x).split('\n')) + '\n}'
+        return output
 
     def __repr__(self):
         return str(self)
@@ -391,6 +440,7 @@ class Context:
                     return True
         
         return False
+    
 
 class VariableInfo:
     def __init__(self, name, vtype, is_param = False):

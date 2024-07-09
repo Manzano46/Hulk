@@ -1,13 +1,13 @@
 input0 = '''
-    type Point inherits Ro {
-        x = 0;
-        y = 0;
+    type Point {
+        x : Number = 0;
+        y : Number = 0;
 
-        getX() => self.x;
-        getY() => self.y;
+        getX() : Number => self.x;
+        getY() : Number => self.y;
         
-        setX(x) => self.x := x;
-        setY(y) => self.y := y;
+        setX(x) : Void => self.x := x;
+        setY(y) : Void => self.y := y;
     }
 
     let pt = new Point() in print(pt.getX())
@@ -40,17 +40,10 @@ input6 = '''
         '''
 
 input7 = '''
-    protocol Hashable {
-        hash(): Number;
-    }
-
-    protocol Equatable extends Hashable {
-        equals(other: Object): Boolean;
-    }
-
+    
     function tan(x: Number): Number => sin(x) / cos(x);
 
-    type Point {
+    type Point inherits PolarPoint {
         x = 0;
         y = 0;
 

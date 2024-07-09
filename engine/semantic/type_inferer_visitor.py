@@ -48,7 +48,7 @@ class TypeInferer(object):
 
         const_scope = node.scope.children[0]
         for i, param_type in enumerate(self.current_type.params_type):
-            param_name = self.current_type.params_names[i]
+            param_name = self.current_type.params[i]
             local_var = const_scope.find_variable(param_name)
             local_var.type = param_type
             # Check if we could infer the param type in the body

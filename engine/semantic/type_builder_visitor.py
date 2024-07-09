@@ -16,7 +16,7 @@ class TypeBuilder:
         pass
     
     @visitor.when(ProgramNode)
-    def visit(self, node):
+    def visit(self, node: ProgramNode):
         for declaration in node.declarations:
             self.visit(declaration)
 
@@ -30,11 +30,9 @@ class TypeBuilder:
         return self.errors, self.context
 
     @visitor.when(TypeDeclarationNode)
-    def visit(self, node):
-        print('visitando el tipo ' + node.name)
+    def visit(self, node: TypeDeclarationNode):
         try:
             self.current_type = self.context.get_type(node.name)
-            print('el current type es ' + self.current_type.name)
         except SemanticError as e:
             self.errors.append(e)
             self.current_type = ErrorType()
@@ -46,21 +44,29 @@ class TypeBuilder:
                 self.errors.append(e)
                 current_parent_type = ErrorType()
             try:
-                print('el padre de ' + self.current_type.name + ' es ' + current_parent_type.name)
                 self.current_type.set_parent(current_parent_type)
             except SemanticError as e:
                 self.errors.append(e)
 
+        for param in node.params:
+            if param.type != None :
+                try:
+                    param_type = self.context.get_type_or_protocol(param.type)
+                except SemanticError as e:
+                    self.errors.append(e)
+                    param_type = ErrorType()
+            else :
+                param_type = UnknowType()
+            self.current_type.set_param(param.lex, param_type)
+
         for name,attribute in node.attributes:
             self.visit(attribute)
-        print(len(node.attributes))
 
         for name,method in node.methods:
             self.visit(method)
             
     @visitor.when(AttributeDeclarationNode)
     def visit(self, node):
-        print('visitando un atributo '+ node.name)
         if node.attribute_type is None:
             attr_type = UnknowType()
         else:
@@ -69,7 +75,6 @@ class TypeBuilder:
             except SemanticError as e:
                 self.errors.append(e)
                 attr_type = ErrorType()
-        print('el tipo de atributo asignado es '+ attr_type.name)
         try:
             self.current_type.define_attribute(node.name, attr_type)
         except SemanticError as e:
@@ -77,7 +82,6 @@ class TypeBuilder:
     
     @visitor.when(MethodDeclarationNode)
     def visit(self, node):
-        print('visitando un metodo '+ node.name)
         params_names = []
         params_types = []
         
@@ -95,11 +99,11 @@ class TypeBuilder:
                 except SemanticError as e:
                     self.errors.append(e)
                     param_type = ErrorType()
-            print('el parametro ' + param.lex + ' de tipo' + param_type.name + ' annadido' )
             params_names.append(param.lex)
             params_types.append(param_type)
 
-        if node.return_type is None:
+        print('buscando el tipo de retorno ' + node.return_type)
+        if node.return_type == None:
             return_type = UnknowType() 
         else : 
             try:
@@ -107,14 +111,14 @@ class TypeBuilder:
             except SemanticError as e:
                 self.errors.append(e)
                 return_type = ErrorType()
-        print('el tipo de retorno del metodo es ' + return_type.name)
         try:
             self.current_type.define_method(node.name, params_names, params_types, return_type)
         except SemanticError as e:
             self.errors.append(e)
+        print('el tipo de retorno asaignado es ' + return_type.name)
 
     @visitor.when(ProtocolDeclarationNode)
-    def visit(self, node):
+    def visit(self, node: ProtocolDeclarationNode):
         try:
             self.current_protocol = self.context.get_protocol(node.idx)
         except SemanticError as e:
