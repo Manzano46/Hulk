@@ -71,7 +71,10 @@ class ModNode(ArithmeticNode):
     pass
 
 class GetAttribNode(InstructionNode):
-    pass
+    def __init__(self, obj, attribute, dest):
+        self.obj = obj
+        self.attribute = attribute
+        self.dest = dest
 
 class SetAttribNode(InstructionNode):
     def __init__(self, obj, attribute, value):
@@ -399,6 +402,9 @@ def get_formatter():
         def visit(self, node : SetAttribNode):
             return f'SETATTR {node.obj} {node.attribute} {node.value}'
         
+        @visitor.when(GetAttribNode)
+        def visit(self, node : GetAttribNode):
+            return f'{node.dest} = GETATTR {node.obj} {node.attribute}'
 
     printer = PrintVisitor()
     return (lambda ast: printer.visit(ast))

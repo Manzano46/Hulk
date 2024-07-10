@@ -67,7 +67,7 @@ class TypeCollector(object):
     @visitor.when(TypeDeclarationNode)
     def visit(self, node):
         try:
-            self.context.create_type(node.name)
+            self.context.create_type(node.name, node)
         except SemanticError as e:
             self.errors.append((node.row, node.column, e))
 

@@ -131,8 +131,9 @@ input9 =  '''
     function tan(x: Number): Number => sin(x) / cos(x);
     function gcd(a, b) => while (a > 0)
         let m = a % b in {
-            b := a;
-            a := m;
+            a := b;
+            b := m;
+            a;
         };
     print(gcd(4,5));
 '''
@@ -148,20 +149,23 @@ input11 = '''
 '''
 
 input12 = '''
-    type Point {
-        x = 0;
-        y = 0;
+    type Point (a : Number, b : Number){      
+        x = a;
+        y = b;
 
-        getX() => x;
-        getY() => y;
+        getX() => self.x;
+        getY() => self.y;
     }
-    type PolarPoint inherits Point {
-        a = 2;
+    type PolarPoint(x : Number,y : Number,z : Number) inherits Point(x+y, y+z){
+        a = x;
         
-        rho() => 1;
+        rho() => self.a;
         
     }
-    1
+    let pt = new PolarPoint(1,2,3) in {
+        print(pt.rho());
+        print(pt.getX());
+    } 
 '''
 
 input13 = '''
@@ -172,7 +176,7 @@ input13 = '''
 '''
 input14 = '''
     function fib(n) {
-        if (n==0 | n==1) 1 else fib(n-1) + fib(n-2);
+        if (n < 2) 1 else fib(n-1) + fib(n-2);
     }
     let x = fib(5) in print(x);
 '''
@@ -202,6 +206,17 @@ input16 = '''
         print(pt.getX());
     } 
 '''
+
+input16 = '''
+    type Est {
+        nota = 2;
+
+        calc(self) => self.nota;
+    }
+
+    let x: Object = 5 in x:= new Est();
+'''
+
 
 test_cases = [
     input0,

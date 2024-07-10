@@ -105,6 +105,7 @@ class TypeBuilder:
             params_names.append(param.lex)
             params_types.append(param_type)
 
+        #print('buscando el tipo de retorno ' + node.return_type)
         if node.return_type == None:
             return_type = UnknowType() 
         else : 

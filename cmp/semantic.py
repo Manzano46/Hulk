@@ -47,13 +47,14 @@ class Attribute:
         return errors
 
 class Method:
-    def __init__(self, name, param_names, params_types, return_type):
+    def __init__(self, name, param_names, params_types, return_type, curr_node = None):
         self.name = name
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
         self.param_vars = []
         self.row, self.column = None, None
+        self.curr_node = curr_node
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -126,6 +127,30 @@ class Protocol:
         self.methods.append(method)
         return method
     
+    def implements(self, other):
+        if not isinstance(other, Protocol):
+            return False
+        
+        try:
+            return all(
+                method.can_substitute_with(self.get_method(method.name)) for method in other.methods
+            )
+        
+        except SemanticError:
+            return False
+
+    def conforms_to(self, other):
+        if other == ObjectType():
+            return True
+        
+        elif isinstance(other, Type):
+            return False
+        
+        elif self == other:
+            return True
+        
+        return self.implements(other)
+    
     def __str__(self):
         output = f'protocol {self.name}'
         parent = '' if self.parent is None else f' : {self.parent.name}'
@@ -162,7 +187,7 @@ class ErrorProtocol(Protocol):
 
 
 class Type:
-    def __init__(self, name:str):
+    def __init__(self, name:str, curr_node=None):
         self.name = name
         self.attributes = []
         self.methods = []
@@ -171,6 +196,7 @@ class Type:
         self.parent: Type = None
         self.param_vars : list[VariableInfo] = []
         self.row, self.column = None, None
+        self.curr_node = curr_node
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -246,6 +272,8 @@ class Type:
                 except SemanticError:
                     return False
         else:
+            if other.name == 'Object':
+                return True
             return other.bypass() or self == other or (self.parent is not None and self.parent.conforms_to(other))
 
     def bypass(self):
@@ -404,10 +432,10 @@ class Context:
         self.functions = {}
         self.row, self.column = None, None
 
-    def create_type(self, name:str) -> Type:
+    def create_type(self, name:str, curr_node=None) -> Type:
         if name in self.types:
             raise SemanticError.INVALID_NAME%('type', name)
-        typex = self.types[name] = Type(name)
+        typex = self.types[name] = Type(name, curr_node)
         return typex
 
     def get_type(self, name:str) -> Type:
@@ -529,6 +557,7 @@ class VariableInfo:
         self.is_param: bool = is_param
         self.infered_types: list[Type] = []
         self.row, self.column = None, None
+        self.value = None
 
     def update_type(self, t: Type):
         self.type =  t
@@ -554,6 +583,9 @@ class VariableInfo:
             )
 
         return errors
+    
+    def update_value(self, val):
+        self.value =  val
 
 class Scope:
     def __init__(self, parent = None):
@@ -580,11 +612,14 @@ class Scope:
         return child
 
     def define_variable(self, vname, vtype, is_param=False, row=None, column=None):
-        info = VariableInfo(vname, vtype, is_param)
-        info.row = row
-        info.column = column
-        self.locals.append(info)
-        return info
+        x = self.find_variable(vname)
+        if not self.find_variable(vname):
+            info = VariableInfo(vname, vtype, is_param)
+            info.row = row
+            info.column = column
+            self.locals.append(info)
+            return info
+        return x
 
     def find_variable(self, vname, index=None):
         locals = self.locals if index is None else itt.islice(self.locals, index)

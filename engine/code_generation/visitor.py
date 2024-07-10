@@ -33,7 +33,6 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         for feature in node.declarations: 
             self.visit(feature)
         
-        
 
         return cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
     
@@ -68,9 +67,15 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         for param in node.params:
             #print( ' hereeeee ',param, param.lex)
             #print(node.scope.children[0].find_variable(param.lex))
-            self.register_param(node.scope.children[0].find_variable(param.lex))
+            x = node.scope.children[0].find_variable(param.lex)
+            self.register_param(x)
+            print(x)
 
         # llamar constructor del padre
+        for arg_parent in node.parent_args:
+            x = self.visit(arg_parent)
+            self.register_instruction(cil.ArgNode(x))
+        
         if self.current_type.parent is not None:
             self.register_instruction(cil.DynamicCallNode(self.current_type.parent.name, '_init_', param_self))
         
@@ -334,10 +339,15 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         #print('functionCall')
         if node.idx == 'print':
             self.register_instruction(cil.PrintNode(self.visit(node.args[0])))
+            return VoidType()
         else:
             for arg in node.args:
                 value = self.visit(arg)
                 self.register_function(cil.ArgNode(value))
+            var = self.define_internal_local()
+            self.register_instruction(cil.StaticCallNode(node.idx,  var))
+            return var    
+            
         
     @visitor.when(ConcatNode)
     def visit(self, node : ConcatNode):
@@ -482,3 +492,90 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.GreaterThanNode(result, left, right))
         
         return result
+    
+    @visitor.when(DestructiveAssignmentNode)
+    def visit(self, node : DestructiveAssignmentNode):
+        ######################################################
+        # node.var -> string
+        # node.expr -> ExpressionNode
+        ######################################################
+        
+        value = self.visit(node.expr)
+        
+        var = self.find(node.var)
+        
+        self.register_instruction(cil.AssignNode(var, value))
+        return var
+    
+    @visitor.when(FunctionDeclarationNode)
+    def visit(self, node : FunctionDeclarationNode):
+        ######################################################
+        # node.id -> string
+        # node.param -> [VariableNode ...]
+        # node.expr -> ExpressionNode
+        # node.return_type -> Type
+        ######################################################
+        
+        parent = self.current_function
+        
+        self.current_function = self.register_function(node.id, node.type)
+        
+        for param in node.params:
+            var = node.scope.find_variable(param.lex)
+            self.register_param(var)
+        
+        expr = self.visit(node.expr)
+        self.register_instruction(cil.ReturnNode(expr))
+        
+        self.current_function = parent
+        
+    @visitor.when(TypeInstantiationNode)
+    def visit(self, node : TypeInstantiationNode):
+        ######################################################
+        # node.idx -> string
+        # node.args -> [ExpressionNode ...]
+        ######################################################
+        
+        var = self.define_internal_local()
+        type_ = None
+        for x in self.dottypes:
+            if x.name == node.idx:
+                type_ = x
+        self.register_instruction(cil.AllocateNode(type_, var))
+        return var
+    
+    
+    @visitor.when(WhileNode)
+    def visit(self, node: WhileNode):
+        ######################################################
+        # node.condition -> ExpressionNode
+        # node.expression -> ExpressionNode
+        ######################################################
+        
+        self.register_instruction(cil.LabelNode(f'label_{self.labels}'))
+        condition = self.visit(node.condition)
+        self.register_instruction(cil.GotoIfNode(cil.NotNode(condition)), f'label_{self.labels + 1}')
+        
+        value = self.visit(node.expression)
+        
+        self.labels += 1
+        self.register_instruction(cil.LabelNode(f'label_{self.labels}'))
+        self.register_instruction(cil.GotoNode(f'label_{self.labels - 1}'))
+        
+        return value
+    
+    @visitor.when(ForNode)
+    def visit(self, node: ForNode):
+        evaluation = None
+        it: VariableInfo = node.expression.scope.find_variable(node.var)
+
+        for variable in self.visit(node.iterable):
+            it.value = variable
+            res = self.visit(node.expression)
+        return res
+    
+    @visitor.when(AttributeCallNode)
+    def visit(self, node: AttributeCallNode):
+        
+        x = self.define_internal_local()
+        self.register_instruction(cil.GetAttribNode())

@@ -537,6 +537,7 @@ class TypeInferer(object):
     
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode):
+        # print('variablenode ', node.lex)
         scope: Scope = node.scope
 
         if not scope.is_defined(node.lex):
