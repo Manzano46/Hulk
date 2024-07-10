@@ -5,25 +5,37 @@ input0 = '''
 
         getX() => self.x;
         getY() => self.y;
-        
-        setX(x: Number) : Number => self.x := x;
-        setY(y: String) : String => self.y := y;
+                
+        setX(x) : Number => self.x := x;
+        setY(y) : String => self.y := y;
     }
 
-    let pt = new Point() in {
+    let pt  = new Point(), vector = [3,4,"feo"] in {
         print(pt.getX());
-        pt.setX(5);
-        print(pt.getX());
-    } 
+        let squares = [z^2 || z in range(1,10)] in print(squares);
+        }
 '''
 input1 = "let number = 42 in let text = \"The meaning of life is\" in print(text @ number);"
   
-input2 = "let a = 5, b = 1, c = 10 in { print(a+b); print(b*c); b + c/a; }"
+input2 = '''let a = 5, b = 1, c = 10 in { 
+    print(a+b); 
+    print(b*c); 
+    b + c/a; 
+    let numbers = [1,2,3,4,5,6,7,8,9] in
+    for (x in numbers)
+        print(x);
+    let numbers = [1,2,3,4,5,6,7,8,9] in print(numbers[7]);
+    }'''   
 
 input3 = '''
     let a : String = 0 in {
         print(a);
         a := 1;
+        let iterable = range(0, 10) in
+        while (iterable.next())
+            let x = iterable.current() in {
+                x+1;
+            };
         print(a);
     }'''
 
@@ -150,7 +162,7 @@ input12 = '''
         rho() => self.a;
         
     }
-    let pt = new PolarPoint() in {
+    let pt = new PolarPoint(1,2,3) in {
         print(pt.rho());
         print(pt.getX());
     } 
@@ -174,6 +186,25 @@ input15 = '''
         while (iterable.next())
             let x = iterable.current() in
                 print(x);
+'''
+input16 = '''
+    type Point (a : Number, b : Number){      
+        x = a;
+        y = b;
+
+        getX() => self.x;
+        getY() => self.y;
+    }
+    type PolarPoint(x : Number,y : Number,z : Number) inherits Point(x+y, y+z){
+        a = x;
+        
+        rho() => self.a;
+        
+    }
+    let pt = new PolarPoint(3,4,5) in {
+        print(pt.rho());
+        print(pt.getX());
+    } 
 '''
 
 input16 = '''

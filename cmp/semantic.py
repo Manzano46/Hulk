@@ -29,6 +29,7 @@ class Attribute:
     def __init__(self, name, typex):
         self.name: str = name
         self.type: Type = typex
+        self.row, self.column = None, None
 
     def __str__(self):
         return f'[attrib] {self.name} : {self.type.name};'
@@ -39,8 +40,8 @@ class Attribute:
     def validate(self):
         errors = []
         if self.type.is_unknow() and not self.type.is_error():
-            errors.append(
-                SemanticError(SemanticError.CANNOT_INFER_ATTR_TYPE % self.name)
+            errors.append((self.row,self.column,
+                SemanticError(SemanticError.CANNOT_INFER_ATTR_TYPE % self.name))
             )
             self.type = ErrorType()
         return errors
@@ -52,6 +53,7 @@ class Method:
         self.param_types = params_types
         self.return_type = return_type
         self.param_vars = []
+        self.row, self.column = None, None
         self.curr_node = curr_node
 
     def __str__(self):
@@ -79,16 +81,16 @@ class Method:
         errors = []
         for i, param_type in enumerate(self.param_types):
             if param_type.is_unknow() and not param_type.is_error():
-                errors.append(
+                errors.append((self.row,self.column,
                     SemanticError(
-                        SemanticError.CANNOT_INFER_PARAM_TYPE % (self.param_names[i], self.name)
+                        SemanticError.CANNOT_INFER_PARAM_TYPE % (self.param_names[i], self.name))
                     )
                 )
                 self.param_types[i] = ErrorType()
 
         if self.return_type.is_unknow() and not self.return_type.is_error():
-            errors.append(
-                SemanticError(SemanticError.CANNOT_INFER_RETURN_TYPE % self.name)
+            errors.append((self.row,self.column,
+                SemanticError(SemanticError.CANNOT_INFER_RETURN_TYPE % self.name))
             )
             self.return_type = ErrorType()
         return errors
@@ -115,11 +117,13 @@ class Protocol:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
             
-    def define_method(self, name:str, param_names:list, param_types:list, return_type, curr_node= None):
+    def define_method(self, name:str, param_names:list, param_types:list, return_type, row= None, column=None):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
 
-        method = Method(name, param_names, param_types, return_type, curr_node)
+        method = Method(name, param_names, param_types, return_type)
+        method.row = row
+        method.column = column
         self.methods.append(method)
         return method
     
@@ -191,6 +195,7 @@ class Type:
         self.params_type = []
         self.parent: Type = None
         self.param_vars : list[VariableInfo] = []
+        self.row, self.column = None, None
         self.curr_node = curr_node
 
     def set_parent(self, parent):
@@ -215,11 +220,13 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Attribute "{name}" is not defined in {self.name}.')
 
-    def define_attribute(self, name:str, typex):
+    def define_attribute(self, name:str, typex, row=None, column=None):
         try:
             self.get_attribute(name)
         except SemanticError:
             attribute = Attribute(name, typex)
+            attribute.row = row
+            attribute.column = column
             self.attributes.append(attribute)
             return attribute
         else:
@@ -236,11 +243,13 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
 
-    def define_method(self, name:str, param_names:list, param_types:list, return_type, curr_node=None):
+    def define_method(self, name:str, param_names:list, param_types:list, return_type, row=None, column=None):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
 
-        method = Method(name, param_names, param_types, return_type, curr_node)
+        method = Method(name, param_names, param_types, return_type)
+        method.row = row
+        method.column = column
         self.methods.append(method)
         return method
 
@@ -305,9 +314,9 @@ class Type:
 
         for i, param_type in enumerate(self.params_type):
             if param_type.is_unknow():
-                errors.append(
+                errors.append((self.row,self.column,
                     SemanticError(
-                        SemanticError.CANNOT_INFER_PARAM_TYPE % (self.params[i], self.name)
+                        SemanticError.CANNOT_INFER_PARAM_TYPE % (self.params[i], self.name))
                     )
                 )
                 self.params_type[i] = ErrorType()
@@ -383,6 +392,7 @@ class VectorType(Type):
         super().__init__(f'{type.name}[]')
         self.set_parent(ObjectType())
         self.define_method('current', [], [], type)
+        self.define_method('next', [], [], BooleanType())
 
     def get_element_type(self):
         return self.get_method('current').return_type
@@ -420,6 +430,7 @@ class Context:
         self.parent: Context = None
         self.children = []
         self.functions = {}
+        self.row, self.column = None, None
 
     def create_type(self, name:str, curr_node=None) -> Type:
         if name in self.types:
@@ -545,6 +556,7 @@ class VariableInfo:
         self.type: Type = vtype
         self.is_param: bool = is_param
         self.infered_types: list[Type] = []
+        self.row, self.column = None, None
         self.value = None
 
     def update_type(self, t: Type):
@@ -566,8 +578,8 @@ class VariableInfo:
         errors = []
         if self.type.is_unknow() and not self.type.is_error():
             self.type = ErrorType()
-            errors.append(
-                SemanticError(SemanticError.CANNOT_INFER_VAR_TYPE % self.name)
+            errors.append((self.row,self.column,
+                SemanticError(SemanticError.CANNOT_INFER_VAR_TYPE % self.name))
             )
 
         return errors
@@ -599,16 +611,17 @@ class Scope:
         self.children.append(child)
         return child
 
-    def define_variable(self, vname, vtype, is_param=False):
+    def define_variable(self, vname, vtype, is_param=False, row=None, column=None):
         x = self.find_variable(vname)
         if not self.find_variable(vname):
             info = VariableInfo(vname, vtype, is_param)
+            info.row = row
+            info.column = column
             self.locals.append(info)
             return info
         return x
 
     def find_variable(self, vname, index=None):
-        # print("buscando variable ",vname )
         locals = self.locals if index is None else itt.islice(self.locals, index)
         try:
             return next(x for x in locals if x.name == vname)

@@ -68,7 +68,7 @@ body %= block, lambda h,s : s[1] #                            | { block }
 args %= expr, lambda h,s : [s[1]] #                     args -> expression
 args %= expr + comma + args, lambda h,s : [s[1]] + s[3] #     | expression , expression ...
 
-assignment_exp %= boolean_exp + destructive + assignment_exp , lambda h,s : DestructiveAssignmentNode(s[1], s[3]) # assignment_expression -> boolean_expression := assignment_expression
+assignment_exp %= boolean_exp + destructive + assignment_exp , lambda h,s : DestructiveAssignmentNode(s[1], s[3], s[2]) # assignment_expression -> boolean_expression := assignment_expression
 assignment_exp %= boolean_exp, lambda h,s : s[1] #                                                                                         | boolean_exp
 
 boolean_exp %= boolean_exp + or_  + comp_exp, lambda h,s : OrNode(s[1], s[3]) # boolean_expression -> boolean_expression | comparation_expression
@@ -127,8 +127,8 @@ atomic_exp %= string, lambda h,s : StringNode(s[1]) #                    | strin
 atomic_exp %= idx, lambda h,s : VariableNode(s[1]) #                     | name
 atomic_exp %= func_call, lambda h,s : s[1] #                             | func_call
 atomic_exp %= vector_exp, lambda h,s : s[1] #                            | vector_expression
-atomic_exp %= base + opar + cpar, lambda h,s : BaseCallNode([]) #        | base  ()
-atomic_exp %= base + opar + args + cpar, lambda h,s : BaseCallNode(s[3])#| base (expression,expression...)
+atomic_exp %= base + opar + cpar, lambda h,s : BaseCallNode(s[1],[]) #      | base  ()
+atomic_exp %= base + opar + args + cpar, lambda h,s : BaseCallNode(s[1], s[3])#| base (expression,expression...)
 
 func_call %= idx + opar + cpar, lambda h,s : FunctionCallNode(s[1],[]) # | function_call -> name ()
 func_call %= idx + opar + args + cpar, lambda h,s : FunctionCallNode(s[1], s[3]) #        | name (expression, expression...)
@@ -146,7 +146,7 @@ feature %= attribute + semi, lambda h,s : s[1] # feature -> attribute;
 feature %= meth, lambda h,s : s[1] #                      | method
 
 # Functions and methods ----------------------------------------------------------------
-func_decl %= func + idx + opar + params + cpar + body, lambda h,s : FunctionDeclarationNode(s[2], s[4], s[6]) # function_declaration -> function name (params) body
+func_decl %= func + idx + opar + params + cpar + body, lambda h,s : FunctionDeclarationNode(s[2], s[4], s[6],) # function_declaration -> function name (params) body
 func_decl %= func + idx + opar + params + cpar + colon + idx + body, lambda h,s : FunctionDeclarationNode(s[2], s[4], s[8], s[7]) #            | function name (params) return_type body
 
 meth %= idx + opar + params + cpar + body, lambda h,s : MethodDeclarationNode(s[1], s[3], s[5]) #         method_declaration -> name (params) body
@@ -199,5 +199,5 @@ elif_exp %= elif_ + opar + expr + cpar + expr, lambda h,s : [(s[3],s[5])] #     
 elif_exp %= elif_ + opar + expr + cpar + expr + elif_exp, lambda h,s : ([(s[3],s[5])] + s[6]) #  | elif (expression) expression elif ...
 
 # Loop ---------------------------------------------------------------------------------------
-loop_exp %= while_ + opar + expr + cpar + expr, lambda h,s : WhileNode(s[3], s[5]) # loop expression -> while (boolean_exp) expression
-loop_exp %= for_ + opar + idx + in_ + expr + cpar + expr, lambda h,s : ForNode(s[3], s[5], s[7]) #    | for id in expression expression
+loop_exp %= while_ + opar + expr + cpar + expr, lambda h,s : WhileNode(s[3], s[5], s[1]) # loop expression -> while (boolean_exp) expression
+loop_exp %= for_ + opar + idx + in_ + expr + cpar + expr, lambda h,s : ForNode(s[3], s[5], s[7], s[1]) #    | for id in expression expression

@@ -124,7 +124,7 @@ class Token:
     
 
     def __str__(self):
-        return f'{self.token_type}: {self.lex}'
+        return f'{self.token_type}: {self.lex} row : {self.row} column : {self.column}'
 
     def __repr__(self):
         return str(self)

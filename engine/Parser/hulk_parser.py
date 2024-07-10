@@ -83,9 +83,10 @@ class HulkParser(LR1Parser):
         
     def __call__(self, tokens: List[Token]):
         #try:
-        mapped_terminals = [self.tokens_terminals_map[t.token_type] for t in tokens]
-        derivation, operations = super().__call__(mapped_terminals, True)
-        return derivation, operations
+        for token in tokens:
+            token.token_type = self.tokens_terminals_map[token.token_type]
+        derivation, operations, errors = super().__call__(tokens, True)
+        return derivation, operations, errors
         #except : #ParserError as e:
             #error_token = tokens[e.token_index]
             #error_text = HulkSyntacticError.PARSING_ERROR % error_token.lex

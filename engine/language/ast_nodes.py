@@ -21,85 +21,101 @@ class ExpressionNode(Node):
     pass
 
 class AtomicNode(ExpressionNode, ABC):
-    def __init__(self,lex):
+    def __init__(self,token):
         super().__init__()
-        self.lex = lex
+        self.lex = token.lex
         
 class VariableNode(AtomicNode):
-    def __init__(self, lex, type=None):
-        super().__init__(lex)
-        self.type = type
+    def __init__(self, token, token_type=None):
+        self.lex = token.lex
+        self.type = token_type.lex if token_type != None else None 
+        self.row = token.row
+        self.column = token.column
     
 # A declaration node can be a function declaration, a type declaration or a protocol declaration
 class FunctionDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, params:list[VariableNode], expr:ExpressionNode, return_type: Type=None):
+    def __init__(self, token, params:list[VariableNode], expr:ExpressionNode, token_return_type=None):
         super().__init__()
         if len(params) > 0:
             self.params = params
         else:
             self.params = []
-        self.id = idx
+        self.id = token.lex
         self.expr: ExpressionNode = expr
-        self.return_type = return_type
+        self.return_type = token_return_type.lex if token_return_type != None else None
+        self.row = token.row
+        self.column = token.column
 
 class MethodDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, params:list[VariableNode], expr:ExpressionNode, return_type=None):
+    def __init__(self, token, params:list[VariableNode], expr:ExpressionNode, token_return_type=None):
         super().__init__()
         if len(params) > 0:
             self.params = params
         else:
             self.params = []
-        self.name = idx
+        self.name = token.lex
         self.expr: ExpressionNode = expr
-        self.return_type: Type = return_type
+        self.return_type = token_return_type.lex if token_return_type != None else None
+        self.row = token.row
+        self.column = token.column
 
 
 class MethodSignatureDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, params:list[VariableNode], return_type):
+    def __init__(self, token, params:list[VariableNode], token_return_type=None):
         super().__init__()
         if len(params) > 0:
             self.params = params
         else:
             self.params = []
-        self.name = idx
-        self.return_type: Type = return_type
+        self.name = token.lex
+        self.return_type = token_return_type.lex if token_return_type != None else None
+        self.row = token.row
+        self.column = token.column
 
 class AttributeDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, expr:ExpressionNode, attribute_type=None):
+    def __init__(self, token, expr:ExpressionNode, token_attribute_type=None):
         super().__init__()
-        self.name = idx
+        self.name = token.lex
         self.expr: ExpressionNode = expr
-        self.attribute_type: Type = attribute_type
+        self.attribute_type = token_attribute_type.lex if token_attribute_type != None else None
+        self.row = token.row
+        self.column = token.column
 
 class TypeDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, params:list[VariableNode], body, parent=None, parent_args=[]):
+    def __init__(self, token, params:list[VariableNode], body, token_parent=None, parent_args=[]):
         super().__init__()
         if len(params) > 0:
             self.params = params
         else :
             self.params = []
             
-        self.name = idx
+        self.name = token.lex
         self.methods = {(method.name,method) for method in body if isinstance(method, MethodDeclarationNode)}
         self.attributes = {(attribute.name,attribute) for attribute in body if isinstance(attribute, AttributeDeclarationNode)}
-        self.parent: TypeDeclarationNode = parent
+        self.parent = token_parent.lex if token_parent != None else None
         self.parent_args = parent_args
+        self.row = token.row
+        self.column = token.column
 
 
 class ProtocolDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, methods_signature:list[MethodSignatureDeclarationNode], parent):
+    def __init__(self, token, methods_signature:list[MethodSignatureDeclarationNode], token_parent):
         super().__init__()
-        self.idx = idx
+        self.idx = token.lex
         self.methods_signature = methods_signature
-        self.parent = parent
+        self.parent = token_parent.lex
+        self.row = token.row
+        self.column = token.column
 
 # Other declarations
 class VarDeclarationNode(DeclarationNode):
-    def __init__(self, idx:str, expr:ExpressionNode, var_type=None):
+    def __init__(self, token, expr:ExpressionNode, token_var_type=None):
         super().__init__()
-        self.id = idx
+        self.id = token.lex
         self.expr: ExpressionNode = expr
-        self.var_type = var_type
+        self.var_type = token_var_type.lex if token_var_type != None else None
+        self.row = token.row
+        self.column = token.column
 
 
 
@@ -119,17 +135,21 @@ class ConditionalNode(ExpressionNode):
         self.else_expr = else_expr
 
 class WhileNode(ExpressionNode):
-    def __init__(self, condition, expression:ExpressionNode):
+    def __init__(self, condition, expression:ExpressionNode, token):
         super().__init__()
         self.condition = condition
         self.expression = expression
+        self.row = token.row
+        self.column = token.column
 
 class ForNode(ExpressionNode):
-    def __init__(self, var, iterable, expression:ExpressionNode):
+    def __init__(self, token_var, iterable, expression:ExpressionNode, token):
         super().__init__()
-        self.var = var
+        self.var = token_var.lex
         self.iterable = iterable
         self.expression = expression
+        self.row = token.row
+        self.column = token.column
 
 class ExpressionBlockNode(ExpressionNode):
     def __init__(self, expressions:list[ExpressionNode]):
@@ -138,30 +158,39 @@ class ExpressionBlockNode(ExpressionNode):
 
 # Simple expressions
 class DestructiveAssignmentNode(ExpressionNode):
-    def __init__(self, var, expr:ExpressionNode):
+    def __init__(self, var, expr:ExpressionNode, token):
         super().__init__()
         self.var = var
         self.expr = expr
+        self.row = token.row
+        self.column = token.column
+        
 
 class IsNode(ExpressionNode):
     def __init__(self, expression:ExpressionNode, ttype):
         super().__init__()
         self.expression = expression
-        self.ttype = ttype
+        self.ttype = ttype.lex
+        self.row = ttype.row
+        self.column = ttype.column
 
 
 class AsNode(ExpressionNode):
     def __init__(self, expression:ExpressionNode, ttype):
         super().__init__()
         self.expression = expression
-        self.ttype = ttype
+        self.ttype = ttype.lex
+        self.row = ttype.row
+        self.column = ttype.column
 
 
 class FunctionCallNode(ExpressionNode):
-    def __init__(self, idx:str, args:list[ExpressionNode]):
+    def __init__(self, token, args:list[ExpressionNode]):
         super().__init__()
-        self.idx = idx
+        self.idx = token.lex
         self.args = args
+        self.row = token.row
+        self.column = token.column
 
 class IndexingNode(ExpressionNode):
     def __init__(self, obj, index):
@@ -171,16 +200,20 @@ class IndexingNode(ExpressionNode):
 
 
 class TypeInstantiationNode(ExpressionNode):
-    def __init__(self, idx, args:list[ExpressionNode]):
+    def __init__(self, token, args:list[ExpressionNode]):
         super().__init__()
-        self.idx = idx
+        self.idx = token.lex
         self.args = args
+        self.row = token.row
+        self.column = token.column
 
 class AttributeCallNode(ExpressionNode):
-    def __init__(self, obj, attribute):
+    def __init__(self, obj, token_attribute):
         super().__init__()
         self.obj = obj
-        self.attribute = attribute
+        self.attribute = token_attribute.lex
+        self.row = token_attribute.row
+        self.column = token_attribute.column
 
 class VectorInitializationNode(ExpressionNode):
     def __init__(self, elements):
@@ -188,25 +221,31 @@ class VectorInitializationNode(ExpressionNode):
         self.elements = elements
 
 class VectorComprehensionNode(ExpressionNode):
-    def __init__(self, selector, var, iterable):
+    def __init__(self, selector, token_var, iterable):
         super().__init__()
         self.selector = selector
-        self.var = var
+        self.var = token_var.lex
         self.iterable = iterable
+        self.row = token_var.row
+        self.column = token_var.column
 
 class MethodCallNode(ExpressionNode):
-    def __init__(self, obj, method, args:list[ExpressionNode]):
+    def __init__(self, obj, token_method, args:list[ExpressionNode]):
         super().__init__()
         self.obj = obj
-        self.method = method
+        self.method = token_method.lex
         self.args = args
+        self.row = token_method.row
+        self.column = token_method.column
 
 class BaseCallNode(ExpressionNode):
-    def __init__(self, args:list[ExpressionNode]):
+    def __init__(self, token, args:list[ExpressionNode]):
         super().__init__()
         self.args = args
         self.method_name = None
         self.parent_type = None
+        self.row = token.row
+        self.column = token.column
 
 
 
@@ -226,19 +265,23 @@ class UnaryExpressionNode(ExpressionNode, ABC):
 
 
 class NumberNode(AtomicNode):
-    #def __init__(self,lex):
-        #self.lex = float(lex)
-    pass
+    def __init__(self,token):
+        self.lex = token.lex
+        self.row = token.row
+        self.column = token.column
+    
 
 class StringNode(AtomicNode):
-    #def __init__(self, lex):
-        #self.lex = str(lex)
-    pass
+    def __init__(self,token):
+        self.lex = token.lex
+        self.row = token.row
+        self.column = token.column
 
 class BooleanNode(AtomicNode):
-    #def __init__(self, lex):
-        #self.lex = bool(lex)
-    pass
+    def __init__(self,token):
+        self.lex = token.lex
+        self.row = token.row
+        self.column = token.column
 
         
 class StrBinaryExpressionNode(BinaryExpressionNode, ABC):

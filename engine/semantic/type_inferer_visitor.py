@@ -57,7 +57,7 @@ class TypeInferer(object):
                 try:
                     new_type = get_lower_heir(local_var.infered_types, var_name=param_name)
                 except SemanticError as e:
-                    self.errors.append(e)
+                    self.errors.append((node.row, node.column, e))
                     new_type = ErrorType()
                 self.current_type.params_type[i] = new_type
                 if not new_type.is_unknow():
@@ -118,9 +118,9 @@ class TypeInferer(object):
             # Check if we could infer the param type in the body
             if param_type.is_unknow() and local_var.is_param and local_var.infered_types:
                 try:
-                    new_type = get_lower_heir(local_var.infered_types, var_name=param_name)
+                    new_type = get_lower_heir(types=local_var.infered_types, var_name=param_name)
                 except SemanticError as e:
-                    self.errors.append(e)
+                    self.errors.append((node.row, node.column, e))
                     new_type = ErrorType()
 
                 self.current_method.param_types[i] = new_type
@@ -162,7 +162,7 @@ class TypeInferer(object):
                     new_type: Type = get_lower_heir(param_name, local_var.infered_types)
 
                 except SemanticError as e:
-                    self.errors.append(e)
+                    self.errors.append((node.row, node.column, e))
                     new_type: Type = ErrorType()
 
                 function.param_types[i] = new_type
@@ -290,7 +290,7 @@ class TypeInferer(object):
             return ErrorType()
 
         args_types: list[Type] = [self.visit(arg) for arg in node.args]
-
+        
         try:
             method: Method = self.current_type.parent.get_method(self.current_method.name)
 
@@ -315,7 +315,6 @@ class TypeInferer(object):
     def visit(self, node: MethodCallNode):
         scope: Scope = node.scope
         obj_type: Type = self.visit(node.obj)
-
         if obj_type.is_error():
             return ErrorType()
 
@@ -349,7 +348,7 @@ class TypeInferer(object):
     def visit(self, node: AttributeCallNode):
         #print('attr call node')
         obj_type: Type = self.visit(node.obj)
-
+    
         if obj_type.is_error():
             return ErrorType()
 
@@ -538,6 +537,7 @@ class TypeInferer(object):
     
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode):
+        # print('variablenode ', node.lex)
         scope: Scope = node.scope
 
         if not scope.is_defined(node.lex):

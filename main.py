@@ -16,6 +16,11 @@ from engine.language.interpreter import HulkInterpreter
 def pipeline(text):
     
     hulk_lexer = HulkLexer(hulk_tokens, G.EOF)
+    tokens, errors = hulk_lexer(text)
+
+    if errors :
+        print('Errores de lexer: %s' % errors)
+        return
     
     try:
         with open('engine/lexer/hulk_lexer.pkl', 'rb') as hulk_lexer_dp:
