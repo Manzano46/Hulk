@@ -103,7 +103,7 @@ class ProtocolDeclarationNode(DeclarationNode):
         super().__init__()
         self.idx = token.lex
         self.methods_signature = methods_signature
-        self.parent = token_parent.lex
+        self.parent = token_parent.lex if token_parent != None else None
         self.row = token.row
         self.column = token.column
 

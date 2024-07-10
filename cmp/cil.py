@@ -167,7 +167,7 @@ class PrintNode(InstructionNode):
         self.str_addr = str_addr
     
 class NotNode(InstructionNode):
-    def __inti__(self, dest, value):
+    def __init__(self, dest, value):
         self.value = value
         self.dest = dest
 

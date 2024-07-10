@@ -55,7 +55,7 @@ class TypeInferer(object):
             # Check if we could infer the param type in the body
             if param_type.is_unknow() and local_var.is_param and local_var.infered_types:
                 try:
-                    new_type = get_lower_heir(local_var.infered_types, var_name=param_name)
+                    new_type = get_lower_heir(types=local_var.infered_types, var_name=param_name)
                 except SemanticError as e:
                     self.errors.append((node.row, node.column, e))
                     new_type = ErrorType()

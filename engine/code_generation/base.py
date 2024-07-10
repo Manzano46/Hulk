@@ -51,7 +51,9 @@ class BaseHulkToCILVisitor:
             for attribute in self.current_type.attributes:
                 if attribute.name == name:
                     return attribute.name 
-        return self.function.vars[name]
+        if name in self.function.vars:
+            return self.function.vars[name]
+        return None        
         
     def register_local(self, vinfo):
         name = vinfo.name
@@ -66,6 +68,8 @@ class BaseHulkToCILVisitor:
         return self.register_local(vinfo)
     
     def register_param(self, vinfo):
+        if vinfo is None:
+            return None
         name = vinfo.name
         vinfo.name = f'param_{self.function.name[9:]}_{vinfo.name}_{len(self.params)}'
         param_node = cil.ParamNode(vinfo.name)

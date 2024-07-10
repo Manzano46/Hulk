@@ -160,6 +160,8 @@ param %= idx, lambda h,s : VariableNode(s[1]) #                 param -> name
 param %= idx + colon + idx, lambda h,s : VariableNode(s[1],s[3]) #     | name : type
 
 # Types ----------------------------------------------------------------
+type_decl %= type_ + idx + opcur + clcur, lambda h,s : TypeDeclarationNode(s[2], [], []) # type_declaration -> type name { assignments and methods}
+
 type_decl %= type_ + idx + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], [], s[4]) # type_declaration -> type name { assignments and methods}
 type_decl %= type_ + idx + opar + params + cpar + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], s[4], s[7]) # type_declaration -> type name (params) { assignments and methods}
 type_decl %= type_ + idx + inherits + idx + opcur + feature_list + clcur, lambda h,s : TypeDeclarationNode(s[2], [], s[6], s[4]) # type_declaration -> type name inherits name { assignments and methods}
@@ -172,13 +174,13 @@ attribute %= idx + equal + expr, lambda h,s : AttributeDeclarationNode(s[1],s[3]
 attribute %= idx + colon + idx + equal + expr, lambda h,s : AttributeDeclarationNode(s[1],s[5],s[3]) #    | name : type = expression
 
 # Protocoles        
-protocol_decl %= protocol + idx + opcur  + clcur, lambda h,s : ProtocolDeclarationNode(s[2], [],None) #           protocol ->  protocol name {}                    
+protocol_decl %= protocol + idx + opcur  + clcur, lambda h,s : ProtocolDeclarationNode(s[2], [], None) #           protocol ->  protocol name {}                    
 protocol_decl %= protocol + idx + opcur + pro_meths + clcur, lambda h,s : ProtocolDeclarationNode(s[2], s[4],None) #           protocol ->  protocol name {meth meth ...}
 protocol_decl %= protocol + idx + extends + idx + opcur + pro_meths + clcur, lambda h,s : ProtocolDeclarationNode(s[2], s[6], s[4]) #    | protocol name extends name {meth meth ...}
 protocol_decl %= protocol + idx + extends + idx + opcur + clcur, lambda h,s : ProtocolDeclarationNode(s[2], [], s[4]) #    | protocol name extends name {}
 
 pro_meths %= pro_meth + semi, lambda h,s : [s[1]] #              pro_meths -> pro_meth ;
-pro_meths %= pro_meth + semi +  pro_meths, lambda h,s : [s[1]] + s[2] #      | pro_meth ; pro_meth ...
+pro_meths %= pro_meth + semi +  pro_meths, lambda h,s : [s[1]] + s[3] #      | pro_meth ; pro_meth ...
 
 pro_meth %= idx + opar + cpar + colon + idx , lambda h,s : MethodSignatureDeclarationNode(s[1], [], s[5]) #            pro_meth -> name () : type 
 pro_meth %= idx + opar + id_id_list + cpar + colon + idx , lambda h,s : MethodSignatureDeclarationNode(s[1], s[3], s[6]) #       | name ( name : type, name : type , ...) : type 

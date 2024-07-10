@@ -501,8 +501,10 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         ######################################################
         
         value = self.visit(node.expr)
-        
-        var = self.find(node.var)
+        if  isinstance(node.var, AttributeCallNode):
+            var = self.find(node.var.attribute)
+        elif isinstance(node.var, VariableNode):
+            var = self.find(node.var.lex)
         
         self.register_instruction(cil.AssignNode(var, value))
         return var
@@ -518,7 +520,7 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         
         parent = self.current_function
         
-        self.current_function = self.register_function(node.id, node.type)
+        self.current_function = self.register_function(node.id)
         
         for param in node.params:
             var = node.scope.find_variable(param.lex)
@@ -554,7 +556,8 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         
         self.register_instruction(cil.LabelNode(f'label_{self.labels}'))
         condition = self.visit(node.condition)
-        self.register_instruction(cil.GotoIfNode(cil.NotNode(condition)), f'label_{self.labels + 1}')
+        x = self.define_internal_local()
+        self.register_instruction(cil.GotoIfNode(cil.NotNode(x, condition), f'label_{self.labels + 1}'))
         
         value = self.visit(node.expression)
         
@@ -578,4 +581,5 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
     def visit(self, node: AttributeCallNode):
         
         x = self.define_internal_local()
-        self.register_instruction(cil.GetAttribNode())
+        self.register_instruction(cil.GetAttribNode(node.obj, node.attribute, x))
+        return x

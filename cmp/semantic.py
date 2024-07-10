@@ -100,6 +100,9 @@ class Protocol:
         self.name = name
         self.methods = []
         self.parent = None
+        
+    def is_unknow(self):
+        return False
 
     def set_parent(self,parent):
         if self.parent is not None:
@@ -434,7 +437,7 @@ class Context:
 
     def create_type(self, name:str, curr_node=None) -> Type:
         if name in self.types:
-            raise SemanticError.INVALID_NAME%('type', name)
+            raise SemanticError(SemanticError.INVALID_NAME%('type', name))
         typex = self.types[name] = Type(name, curr_node)
         return typex
 
