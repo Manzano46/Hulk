@@ -3,7 +3,7 @@ from cmp.pycompiler import Item
 from cmp.utils import ContainerSet
 from engine.parser.firsts_follows import compute_firsts, compute_local_first
 from engine.parser.shift_reduce_parser_generator import ShiftReduceParser
-from pandas import DataFrame
+#from pandas import DataFrame
 
 def expand(item, firsts):
     next_symbol = item.NextSymbol
@@ -171,14 +171,3 @@ def encode_value(value):
             return value
     except TypeError:
         return value
-
-def table_to_dataframe(table):
-    d = {}
-    for (state, symbol), value in table.items():
-        value = encode_value(value)
-        try:
-            d[state][symbol] = value
-        except KeyError:
-            d[state] = { symbol: value }
-
-    return DataFrame.from_dict(d, orient='index', dtype=str)

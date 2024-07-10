@@ -8,12 +8,13 @@ class HulkLexer(Lexer):
         super().__init__(table, eof)
     
     def __call__(self, text):
-        tokens = super().__call__(text)
+        tokens,errors = super().__call__(text)
         
         filtered_tokens = [token for token in tokens if token.is_valid and
                            token.token_type not in [TokenType.SPACES, TokenType.ESCAPED_CHAR,
                                                     TokenType.STRING_INF]]
+        
         for tk in tokens:
             if tk.token_type == TokenType.STRING_INF:
-                raise HulkLexicographicError(HulkLexicographicError.STRING_INF % (tk.row, tk.column),tk.row, tk.column)
-        return filtered_tokens
+                errors.append(HulkLexicographicError.STRING_INF % (tk.row, tk.column))
+        return filtered_tokens, errors

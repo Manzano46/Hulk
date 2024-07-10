@@ -10,7 +10,11 @@ from cmp.evaluation import evaluate_reverse_parse
 def pipeline(text):
     
     hulk_lexer = HulkLexer(hulk_tokens, G.EOF)
-    tokens = hulk_lexer(text)
+    tokens, errors = hulk_lexer(text)
+
+    if errors :
+        print('Errores de lexer: %s' % errors)
+        return
     
     hulk_parser = LR1Parser(G)
     right_parse, operations = hulk_parser([token.token_type for token in tokens], True)

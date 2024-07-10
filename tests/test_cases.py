@@ -5,8 +5,8 @@ input0 = '''
 
         getX() => self.x;
         getY() => self.y;
-        
-        setX(x) : Number => self.x := x;
+                
+        setX(x) : Number => self.x := x
         setY(y) : String => self.y := y;
     }
 

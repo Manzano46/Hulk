@@ -11,6 +11,7 @@ class Lexer:
         self.eof = eof
         self.regexs = self._build_regexs(table)
         self.automaton = self._build_automaton()
+        self.errors = []
     
     def _build_regexs(self, table):
         regexs = []
@@ -60,7 +61,8 @@ class Lexer:
         while len(text) > 0:
             final, final_lex = self._walk(text)
             if len(final_lex) == 0 or final is None:
-                raise HulkLexicographicError(HulkLexicographicError.INVALID_CARATER % (row, column), row, column)
+                self.errors.append(HulkLexicographicError.INVALID_CARATER % (row, column))
+                break
 
             n, token_type = min(final.tag)
             
@@ -78,4 +80,4 @@ class Lexer:
         yield '$', TokenType.EOF, row, column
     
     def __call__(self, text):
-        return [ Token(lex, ttype, row, column) for lex, ttype, row, column in self._tokenize(text) ]
+        return [ Token(lex, ttype, row, column) for lex, ttype, row, column in self._tokenize(text) ], self.errors

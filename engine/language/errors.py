@@ -27,7 +27,7 @@ class HulkLexicographicError(HulkError,BaseException):
 
     UNKNOWN_TOKEN = 'En mi vida había visto este token \'%s\' en la línea \'%s\' columna \'%s\'.'
     STRING_INF = 'Anormal cierra el string en la línea \'%s\' columna \'%s\'.'
-    UNSPECTED_TOKEN = 'De donde sacaste este token???.No se esperaba el token \'%s\'.'
+    UNSPECTED_TOKEN = 'De donde sacaste este token???.No se esperaba el token \'%s\' en la línea \'%s\' columna \'%s\'.'
     INVALID_CARATER = 'No se pudo tokenizar el caracter en la línea \'%s\' columna \'%s\'.'
 
     @property
