@@ -132,17 +132,17 @@ input11 = '''
 '''
 
 input12 = '''
-    type Point {
-        x = 0;
-        y = 0;
+    type Point (a : Number, b : Number){      
+        x = a;
+        y = b;
 
-        getX() => x;
-        getY() => y;
+        getX() => self.x;
+        getY() => self.y;
     }
-    type PolarPoint inherits Point {
-        a = 2;
+    type PolarPoint(x : Number,y : Number,z : Number) inherits Point(x+y, y+z){
+        a = x;
         
-        rho() => 1;
+        rho() => self.a;
         
     }
     1

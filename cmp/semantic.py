@@ -1,6 +1,5 @@
 import itertools as itt
 from collections import OrderedDict
-from engine.language.ast_nodes import ExpressionNode
 
 
 class SemanticError(Exception):
@@ -545,7 +544,7 @@ class VariableInfo:
         self.type: Type = vtype
         self.is_param: bool = is_param
         self.infered_types: list[Type] = []
-        self.value
+        self.value = None
 
     def update_type(self, t: Type):
         self.type =  t
@@ -572,23 +571,6 @@ class VariableInfo:
 
         return errors
 
-class Function:
-    def __init__(
-        self, name, param_names, param_types, return_type, current_node=None, body=None
-    ):
-        self.name = name
-        self.param_names = param_names
-        self.param_types = param_types
-        self.return_type = return_type
-        self.body: ExpressionNode = body
-        self.current_node = current_node
-
-    def __eq__(self, other):
-        return (
-            other.name == self.name
-            and other.return_type == self.return_type
-            and other.param_types == self.param_types
-        )
 
 class Scope:
     def __init__(self, parent = None):

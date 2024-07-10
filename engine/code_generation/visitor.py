@@ -67,9 +67,15 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         for param in node.params:
             #print( ' hereeeee ',param, param.lex)
             #print(node.scope.children[0].find_variable(param.lex))
-            self.register_param(node.scope.children[0].find_variable(param.lex))
+            x = node.scope.children[0].find_variable(param.lex)
+            self.register_param(x)
+            print(x)
 
         # llamar constructor del padre
+        for arg_parent in node.parent_args:
+            x = self.visit(arg_parent)
+            self.register_instruction(cil.ArgNode(x))
+        
         if self.current_type.parent is not None:
             self.register_instruction(cil.DynamicCallNode(self.current_type.parent.name, '_init_', param_self))
         
@@ -539,3 +545,37 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         return var
     
     
+    @visitor.when(WhileNode)
+    def visit(self, node: WhileNode):
+        ######################################################
+        # node.condition -> ExpressionNode
+        # node.expression -> ExpressionNode
+        ######################################################
+        
+        self.register_instruction(cil.LabelNode(f'label_{self.labels}'))
+        condition = self.visit(node.condition)
+        self.register_instruction(cil.GotoIfNode(cil.NotNode(condition)), f'label_{self.labels + 1}')
+        
+        value = self.visit(node.expression)
+        
+        self.labels += 1
+        self.register_instruction(cil.LabelNode(f'label_{self.labels}'))
+        self.register_instruction(cil.GotoNode(f'label_{self.labels - 1}'))
+        
+        return value
+    
+    @visitor.when(ForNode)
+    def visit(self, node: ForNode):
+        evaluation = None
+        it: VariableInfo = node.expression.scope.find_variable(node.var)
+
+        for variable in self.visit(node.iterable):
+            it.value = variable
+            res = self.visit(node.expression)
+        return res
+    
+    @visitor.when(AttributeCallNode)
+    def visit(self, node: AttributeCallNode):
+        
+        x = self.define_internal_local()
+        self.register_instruction(cil.GetAttribNode())
