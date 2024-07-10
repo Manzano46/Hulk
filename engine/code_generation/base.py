@@ -13,6 +13,8 @@ class BaseHulkToCILVisitor:
         self.context : Context = context
         self.main = None
         self.labels = 0
+        self.vself = VariableInfo('self', None)
+        self.value_types = ['String', 'Int', 'Bool']
     
     @property
     def params(self):

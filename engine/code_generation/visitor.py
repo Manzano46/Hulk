@@ -33,7 +33,6 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         for feature in node.declarations: 
             self.visit(feature)
         
-        
 
         return cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
     
@@ -482,3 +481,17 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         self.register_instruction(cil.GreaterThanNode(result, left, right))
         
         return result
+    
+    @visitor.when(DestructiveAssignmentNode)
+    def visit(self, node : DestructiveAssignmentNode):
+        ######################################################
+        # node.var -> string
+        # node.expr -> ExpressionNode
+        ######################################################
+        
+        value = self.visit(node.expr)
+        
+        var = self.find(node.var)
+        
+        self.register_instruction(cil.AssignNode(var, value))
+        return var
