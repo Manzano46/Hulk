@@ -5,7 +5,7 @@ from engine.semantic.type_inferer_visitor import TypeInferer
 from engine.semantic.variable_collector_visitor import VarCollector
 from engine.semantic.ast_printer import get_ast_printer
 
-def semantic_analysis_pipeline(ast, debug=False):
+def hulk_semantic(ast, debug=False):
     if debug:
         print('===================== AST =====================')
         printer = get_ast_printer()
@@ -78,5 +78,5 @@ def semantic_analysis_pipeline(ast, debug=False):
         print(context)
         print('Scope:')
         print(scope)
-        
+
     return ast, errors, context, scope

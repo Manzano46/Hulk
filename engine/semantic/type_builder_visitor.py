@@ -112,7 +112,7 @@ class TypeBuilder:
                 self.errors.append(e)
                 return_type = ErrorType()
         try:
-            self.current_type.define_method(node.name, params_names, params_types, return_type)
+            self.current_type.define_method(node.name, params_names, params_types, return_type, node)
         except SemanticError as e:
             self.errors.append(e)
         #print('el tipo de retorno asaignado es ' + return_type.name)

@@ -3,7 +3,8 @@ from cmp.semantic import Context
 import cmp.visitor as visitor
 from engine.language.ast_nodes import *
 import copy
-    
+import math
+import random
 
 class RuntimeError(Exception):
     @property
@@ -18,7 +19,8 @@ class HulkInterpreter:
         self.current_method = None
         self.current_function = None
         self.context : Context = context
-        self.errors
+        self.program_node = None
+        # self.errors
     
     @visitor.on('node')
     def visit(self, node):
@@ -31,9 +33,9 @@ class HulkInterpreter:
         # node.expression -> ExpressionNode
         ######################################################
         
-        for feature in node.declarations: 
-            self.visit(feature)
-        
+        # for feature in node.declarations: 
+        #     self.visit(feature)
+        self.program_node = node
         return self.visit(node.expression)
 
     
@@ -57,7 +59,7 @@ class HulkInterpreter:
         var = node.scope.define_variable(f'self.{node.name}')
         #var = node.scope.find_variable(node.name)
         value = self.visit(node.expr)
-        var.value = var
+        var.value = value
         return 
     
     @visitor.when(MethodDeclarationNode)
@@ -106,7 +108,7 @@ class HulkInterpreter:
     
     @visitor.when(VectorInitializationNode)
     def visit(self, node: VectorInitializationNode):
-        return
+        return [self.visit(element) for element in node.elements]
     
     @visitor.when(LetInNode)
     def visit(self, node : LetInNode):
@@ -128,12 +130,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.PlusNode(result, left, right))
         
-        return result
+        return left + right
     
     
     @visitor.when(MinusNode)
@@ -144,12 +144,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.MinusNode(result, left, right))
         
-        return result
+        return left - right
     
     @visitor.when(DivNode)
     def visit(self, node : DivNode):
@@ -159,12 +157,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.DivNode(result, left, right))
         
-        return result
+        return left/right
     
     @visitor.when(StarNode)
     def visit(self, node : StarNode):
@@ -174,12 +170,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.StarNode(result, left, right))
         
-        return result
+        return left * right
     
     @visitor.when(PowNode)
     def visit(self, node : PowNode):
@@ -189,12 +183,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.PowNode(result, left, right))
         
-        return result
+        return left ** right
     
     @visitor.when(ModNode)
     def visit(self, node : ModNode):
@@ -204,12 +196,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.ModNode(result, left, right))
         
-        return result
+        return left % right
     
     @visitor.when(NumberNode)
     def visit(self, node : NumberNode):
@@ -217,7 +207,7 @@ class HulkInterpreter:
         # node.lex -> string
         ######################################################
         
-        return node.lex
+        return float(node.lex)
     
     @visitor.when(StringNode)
     def visit(self, node : StringNode):
@@ -225,33 +215,18 @@ class HulkInterpreter:
         # node.lex -> string
         ######################################################
         
-        #print('string')
-        
-        var = self.find_cte(node.lex)
-        if var == None:
-            var = self.register_local_cte(node.lex)
-        
-        constant = None
-        for data in self.dotdata:
-            if data.value == node.lex:
-                constant = data.name 
-                
-        if constant == None:
-            cte = self.register_data(node.lex)
-            self.register_instruction(cil.LoadNode(var, cte.name))
-        
-        return var
+        return node.lex
     
     @visitor.when(BooleanNode)
     def visit(self, node : BooleanNode):
         ######################################################
         # node.lex -> string
         ######################################################
-        
+
         if node.lex == 'True':
-            return 1
+            return True
         else:
-            return 0
+            return False
     
     @visitor.when(ExpressionBlockNode)
     def visit(self, node : ExpressionBlockNode):
@@ -271,20 +246,9 @@ class HulkInterpreter:
         # node.lex -> string
         # node.type -> Type
         ######################################################
-        
-        var = self.find(node.lex)
-        
-        return var
-    
-    # @visitor.when(PrintNode)
-    # def visit(self, node : PrintNode):
-    #     ######################################################
-    #     # node.expr -> ExpressionNode
-    #     ######################################################
-    #     print('print')
-    #     value = self.visit(node.expr)
-        
-    #     self.register_instruction(cil.PrintNode(value))
+        var = node.scope.find_variable(node.lex)
+        # print(node.lex, var.value)
+        return var.value
         
     @visitor.when(FunctionCallNode)
     def visit(self, node : FunctionCallNode):
@@ -292,20 +256,50 @@ class HulkInterpreter:
         # node.idx -> string
         # node.args -> [ExpressionNode ...]
         ######################################################
-        #print('functionCall')
+        args_list = [self.visit(arg) for arg in node.args]
+        print('function ', node.idx, args_list)
         if node.idx == 'print':
-            self.register_instruction(cil.PrintNode(self.visit(node.args[0])))
+            print(*args_list)
+            return None
+        elif node.idx == 'sqrt':
+            return math.sqrt(*args_list)
+        elif node.idx == 'sin':
+            return math.sin(*args_list)
+        elif node.idx == 'cos':
+            return math.cos(*args_list)
+        elif node.idx == 'exp':
+            return math.exp(*args_list)
+        elif node.idx == 'log':
+            return math.log(*args_list)
+        elif node.idx == 'rand':
+            return random.random()
         else:
-            for arg in node.args:
-                value = self.visit(arg)
-                self.register_function(cil.ArgNode(value))
-        
+            fdecl_ = None
+            for func in self.program_node.declarations:
+                if (isinstance(func, FunctionDeclarationNode) and 
+                    func.id == node.idx and len(args_list)==len(func.params)):
+                    fdecl_ = copy.deepcopy(func)
+                    break
+            
+            fdecl_.scope.parent = node.scope
+            obj_func = self.context.get_function(node.idx)
+            for i, var in enumerate(obj_func.param_vars):
+                variable = fdecl_.scope.children[0].define_variable(var.name, var.type)
+                variable.value = args_list[i]
+            
+            return self.visit(fdecl_.expr)
+            
     @visitor.when(DestructiveAssignmentNode)
     def visit(self, node: DestructiveAssignmentNode):
-        
-        variable = node.scope.find_variable(node.var.lex)
-        value = self.visit(node.expression)
-        variable.update(value)
+        value = self.visit(node.expr)
+
+        if isinstance(node.var, AttributeCallNode):
+            variable = node.scope.find_variable(node.var.obj.lex)
+            variable.value[node.var.attribute] = value
+        else:
+            variable = node.scope.find_variable(node.var.lex)
+            variable.update_value(value)
+
         return value
         
     @visitor.when(ConcatNode)
@@ -316,19 +310,18 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.ConcatNode(result, left, right))
         
-        return result
+        return left + right
     
     @visitor.when(TypeInstantiationNode)
     def visit(self, node: TypeInstantiationNode):
         
-        type_node = self.context.get_type(node.identifier).curr_node
-        
-        type_node: TypeDeclarationNode = copy.deepcopy(type_node)
+        type_ = self.context.get_type(node.idx)
+        type__ = type_
+        type_node: TypeDeclarationNode = copy.deepcopy(type_.curr_node)
+        obj = {"type": type_node}
 
         args_ = [self.visit(i) for i in node.args]
         parent = type_node
@@ -336,47 +329,119 @@ class HulkInterpreter:
         while parent:
             scope = parent.scope
             
-            for i, vname in enumerate(parent.param_ids):
-                var = scope.define_variable(vname, None)
+            for i, vname in enumerate(parent.params):
+                var = scope.define_variable(vname, type__.param_vars[i].type)
                 var.value = args_[i]
 
-            for attr in parent.attributes:
-                var = scope.define_variable(f"self.{attr.identifier}", None)
-                value = self.visit(attr.expression)
-                var.value = value
+            for attr, expr in parent.attributes:
+                # var = scope.define_variable(f"self.{attr.identifier}", None)
+                value = self.visit(expr.expr)
+                obj[attr] = value
+                # var.value = value
 
-            for method in parent.methods:
-                method: MethodDeclarationNode
+            # for method in parent.methods:
+            #     method: MethodDeclarationNode
 
-                scope.define_function(method.identifier, method.param_ids, method.param_types, method.type,body=method.expression,
-                )
+            #     scope.define_function(method.identifier, method.param_ids, method.param_types, method.type,body=method.expression,
+            #     )
 
-            if len(parent.type_parent_args) > 0:
-                args = [self.visit(arg) for arg in parent.type_parent_args]
+            # if len(parent.type_parent_args) > 0:
+            #     args = [self.visit(arg) for arg in parent.type_parent_args]
 
             
             if parent.parent:
                 oldChild = parent
-                parent: TypeDeclarationNode = self.context.get_type(
-                    parent.parent, len(parent.type_parent_args)
-                ).current_node
-                parent = copy.deepcopy(parent)
+                type__ = self.context.get_type(parent.parent)
+                parent: TypeDeclarationNode = copy.deepcopy(type__.curr_node)
                 scope.parent = parent.scope  
 
-                for p_method in parent.methods:
-                    for c_method in oldChild.methods:
-                        if p_method.identifier == c_method.identifier:
-                            c_method.scope.define_function(
-                                fname="base",
-                                param_names=p_method.param_ids,
-                                param_types=p_method.param_types,
-                                return_type=p_method.type,
-                                body=p_method.expression,
-                            )
+                # for p_method in parent.methods:
+                #     for c_method in oldChild.methods:
+                #         if p_method.identifier == c_method.identifier:
+                #             c_method.scope.define_function(
+                #                 fname="base",
+                #                 param_names=p_method.param_ids,
+                #                 param_types=p_method.param_types,
+                #                 return_type=p_method.type,
+                #                 body=p_method.expression,
+                #             )
             else:
                 break
-        return type_node
+        return obj
+    
+    @visitor.when(MethodCallNode)
+    def visit(self, node: MethodCallNode):
+        # print('buscando ', node.obj.lex)
+        obj = node.scope.find_variable(node.obj.lex)
+        obj_meth = obj.type.get_method(node.method)
+        # print('buscando metodo ', node.method)
+        sself = node.scope.define_variable('self', obj.type)
+        sself.value = obj.value
 
+        method = obj_meth.curr_node
+        method.scope.parent = node.scope
+
+        # object_instance: TypeDeclarationNode = node.scope.get_global_variable_info(
+        #     variable_name
+        # ).value
+
+        args_ = [self.visit(expr) for expr in node.args]
+        for i, var in enumerate(obj_meth.param_vars):
+            variable = method.scope.define_variable(var.name, var.type)
+            variable.value = args_[i]
+
+        result = self.visit(method.expr)
+
+        # if isinstance(object_instance, list):
+        #     if node.method_identifier == "next":
+        #         if len(object_instance) == 0:
+        #             return False
+        #         return True
+        #     if node.method_identifier == "current":
+        #         return object_instance.pop(0)
+
+        # print(" ------------------------------- MethodCallNode - - - -- - - -- - - - ")
+        # print("variable name: ", variable_name)
+        # print("value :", object_instance)
+        # print("id: ", node.object_identifier.lexeme)
+        # print("mid:", node.method_identifier)
+        # print("-----------------------------DEBUG OFFF ---------------------")
+
+        # if object_instance is None and variable_name == "self":
+        #     object_instance = node
+            # print(
+            #     'object_instance is None and variable_name == "self"',
+            #     [i.name for i in node.scope.get_all_functions()],
+            # )
+
+        # method: Function = object_instance.scope.get_global_function_info(
+        #     node.method_identifier, len(node.args)
+        # )
+
+        # method.body = copy.deepcopy(method.body)
+
+        # old_scope_locals = copy.deepcopy(method.body.scope.local_vars)
+        # print(
+        #     "= = = " * 5,
+        #     str([(i.name, i.value) for i in method.body.scope.get_all_variables()]),
+        # )
+        # for i, vname in enumerate(method.param_names):
+        #     value = self.visit(node.args[i])
+        #     method.body.scope.get_global_variable_info(vname).update(value)
+        # print(
+        #     method.name,
+        #     method.body,
+        #     str([(i.name, i.value) for i in method.body.scope.get_all_variables()]),
+        # )
+        # value = self.visit(method.body)
+        # method.body.scope.local_vars = old_scope_locals
+        # return value
+        return result
+    
+    @visitor.when(AttributeCallNode)
+    def visit(self, node: AttributeCallNode):
+        val =  node.scope.find_variable(node.obj.lex).value[node.attribute]
+        return val
     
     
     @visitor.when(ConditionalNode)
@@ -386,7 +451,7 @@ class HulkInterpreter:
         # node.else_expr ->
         ######################################################
         
-        for expr, cond in zip(node.condition_expression_list, node.condition_expression_list):
+        for cond, expr in node.condition_expression_list:
             if self.visit(cond):
                 return self.visit(expr)
             return self.visit(node.else_expr)
@@ -399,12 +464,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.EqualNode(result, left, right))
         
-        return result
+        return left == right
     
     @visitor.when(NotEqualNode)
     def visit(self, node : EqualNode):
@@ -414,12 +477,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.NotEqualNode(result, left, right))
         
-        return result
+        return left != right
     
     @visitor.when(GreaterOrEqualNode)
     def visit(self, node : GreaterOrEqualNode):
@@ -429,12 +490,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.GreaterOrEqualNode(result, left, right))
         
-        return result
+        return left >= right
     
     @visitor.when(LessOrEqualNode)
     def visit(self, node : LessOrEqualNode):
@@ -444,12 +503,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.LessOrEqualNode(result, left, right))
         
-        return result
+        return left <= right
     
     @visitor.when(LessThanNode)
     def visit(self, node : LessThanNode):
@@ -459,12 +516,10 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.LessThanNode(result, left, right))
         
-        return result
+        return left < right
     
     @visitor.when(GreaterThanNode)
     def visit(self, node : GreaterThanNode):
@@ -474,15 +529,14 @@ class HulkInterpreter:
         # node.operator -> String
         ######################################################
         
-        result = self.define_internal_local()
         left = self.visit(node.left)
         right = self.visit(node.right)
-        self.register_instruction(cil.GreaterThanNode(result, left, right))
         
-        return result
+        return left > right
     
     @visitor.when(WhileNode)
     def visit(self, node: WhileNode):
+        # print('whilenode')
         res = None
         while self.visit(node.condition):
             res = self.visit(node.expression)
@@ -494,8 +548,9 @@ class HulkInterpreter:
         it: VariableInfo = node.expression.scope.find_variable(node.var)
 
         for variable in self.visit(node.iterable):
-            it.value = variable
+            it.update_value(variable)
             res = self.visit(node.expression)
+
         return res
     
     
@@ -503,15 +558,16 @@ class HulkInterpreter:
     def visit(self, node: IsNode):
         value = self.visit(node.expression)
 
-        type = self.context.get_type(node.type.lexeme)
+        type = self.context.get_type(node.ttype)
+
         if isinstance(value, float):
-            return type == "Number"
+            return type.name == "Number"
         elif isinstance(value, str):
-            return type == "String"
+            return type.name == "String"
         elif isinstance(value, bool):
-            return type == "Bool"
+            return type.name == "Boolean"
         elif isinstance(value, list):
-            return type == "Vector"
+            return type.name == "Vector"
         else:
             try:
                 value: TypeDeclarationNode
@@ -543,3 +599,14 @@ class HulkInterpreter:
                 break
         node.scope = tmp.scope
         return node
+    
+    @visitor.when(IndexingNode)
+    def visit(self, node: IndexingNode):
+        index = self.visit(node.index)
+        vector = node.scope.find_variable(node.obj).value
+        try:
+            int_index = int(index)
+        except Exception as e:
+            print(f"💥Runtime Error: Index out of range in {node.obj}")
+            exit(1)
+        return vector[int_index]
