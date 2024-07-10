@@ -150,7 +150,7 @@ input12 = '''
         rho() => self.a;
         
     }
-    let pt = new PolarPoint() in {
+    let pt = new PolarPoint(1,2,3) in {
         print(pt.rho());
         print(pt.getX());
     } 

@@ -37,7 +37,7 @@ class VarCollector:
         for param in node.params:
             param_type = UnknowType()
             if param.type != None:
-                param_type = param.type
+                param_type = self.context.get_type(param.type)
             const_scope.define_variable(param.lex, param_type)
             self.current_type.param_vars.append(VariableInfo(param.lex, param_type))
 

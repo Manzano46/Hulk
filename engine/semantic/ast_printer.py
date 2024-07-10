@@ -61,11 +61,12 @@ def get_ast_printer():
         def visit(self, node : TypeDeclarationNode, tabs=0):
             ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
             params = ''.join('\n' + self.visit(param, tabs + 1) for param in node.params)
+            parents_args = ''.join('\n' + self.visit(param, tabs + 1) for param in node.parent_args)
             
         
             methods = ''.join('\n' + self.visit(feature, tabs + 1) for name,feature in node.methods)
             attribute = ''.join('\n' + self.visit(feature, tabs + 1) for name,feature in node.attributes)
-            return f'{ans}\n params \n{params}\n attributes \n{attribute}\n methods \n{methods}'
+            return f'{ans}\n params \n{params} parent_args\n{parents_args}\n attributes \n{attribute}\n methods \n{methods}'
         
         @visitor.when(ProtocolDeclarationNode)
         def visit(self, node, tabs=0):
