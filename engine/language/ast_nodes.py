@@ -99,11 +99,11 @@ class TypeDeclarationNode(DeclarationNode):
 
 
 class ProtocolDeclarationNode(DeclarationNode):
-    def __init__(self, token, methods_signature:list[MethodSignatureDeclarationNode], parent):
+    def __init__(self, token, methods_signature:list[MethodSignatureDeclarationNode], token_parent):
         super().__init__()
         self.idx = token.lex
         self.methods_signature = methods_signature
-        self.parent = parent
+        self.parent = token_parent.lex
         self.row = token.row
         self.column = token.column
 
@@ -143,9 +143,9 @@ class WhileNode(ExpressionNode):
         self.column = token.column
 
 class ForNode(ExpressionNode):
-    def __init__(self, var, iterable, expression:ExpressionNode, token):
+    def __init__(self, token_var, iterable, expression:ExpressionNode, token):
         super().__init__()
-        self.var = var
+        self.var = token_var.lex
         self.iterable = iterable
         self.expression = expression
         self.row = token.row

@@ -465,7 +465,6 @@ class TypeChecker(object):
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode):
-        #print('visistando la variable ' + node.lex)
         scope = node.scope
 
         if not scope.is_defined(node.lex):
@@ -474,7 +473,6 @@ class TypeChecker(object):
             return ErrorType()
 
         var = scope.find_variable(node.lex)
-        #print('variable encontrada ' + var.name + ' del tipo ' + var.type.name)
         return var.type
 
     @visitor.when(TypeInstantiationNode)

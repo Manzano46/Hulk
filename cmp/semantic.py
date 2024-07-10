@@ -364,6 +364,7 @@ class VectorType(Type):
         super().__init__(f'{type.name}[]')
         self.set_parent(ObjectType())
         self.define_method('current', [], [], type)
+        self.define_method('next', [], [], BooleanType())
 
     def get_element_type(self):
         return self.get_method('current').return_type
@@ -586,7 +587,6 @@ class Scope:
         return info
 
     def find_variable(self, vname, index=None):
-        # print("buscando variable ",vname )
         locals = self.locals if index is None else itt.islice(self.locals, index)
         try:
             return next(x for x in locals if x.name == vname)

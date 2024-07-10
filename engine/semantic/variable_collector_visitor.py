@@ -153,7 +153,6 @@ class VarCollector:
     def visit(self, node: ForNode, scope: Scope):
         node.scope = scope
         expr_scope = scope.create_child()
-
         expr_scope.define_variable(node.var, UnknowType(), is_param=True, row=node.row, column=node.column)
 
         self.visit(node.iterable, scope.create_child())
