@@ -37,8 +37,8 @@ class VarCollector:
         for param in node.params:
             param_type = UnknowType()
             if param.type != None:
-                param_type = param.type
-            const_scope.define_variable(param.lex, param_type)
+                param_type = self.context.get_type(param.type)
+            const_scope.define_variable(param.lex, param_type, node.row, node.column)
             self.current_type.param_vars.append(VariableInfo(param.lex, param_type))
 
         for expr in node.parent_args:
@@ -47,7 +47,7 @@ class VarCollector:
         for _, attribute in node.attributes:
             self.visit(attribute, const_scope.create_child())
         
-        scope.define_variable('self', self.current_type)    
+        scope.define_variable('self', self.current_type, node.row, node.column)    
         for _, method in node.methods:
             self.visit(method, scope.create_child())
 
@@ -63,7 +63,7 @@ class VarCollector:
         method = self.current_type.get_method(node.name)
         for i, param_name in enumerate(method.param_names):
             param_type = method.param_types[i]
-            scope.define_variable(param_name, param_type)
+            scope.define_variable(param_name, param_type, node.row, node.column)
             method.param_vars.append(VariableInfo(param_name, param_type))
 
         self.visit(node.expr, scope.create_child())
@@ -78,7 +78,7 @@ class VarCollector:
 
         for i, param_name in enumerate(function.param_names):
             param_type = function.param_types[i]
-            new_scope.define_variable(param_name, param_type, is_param=True)
+            new_scope.define_variable(param_name, param_type, is_param=True, row=node.row, column=node.column)
             function.param_vars.append(VariableInfo(param_name, param_type))
 
         self.visit(node.expr, new_scope)
@@ -102,10 +102,10 @@ class VarCollector:
                 var_type = self.context.get_type_or_protocol(node.var_type)
                 
             except SemanticError as e:
-                self.errors.append(e)
+                self.errors.append((node.row, node.column, e))
                 var_type = ErrorType()
         
-        scope.define_variable(node.id, var_type)
+        scope.define_variable(node.id, var_type, node.row, node.column)
 
 
     @visitor.when(LetInNode)
@@ -154,7 +154,7 @@ class VarCollector:
         node.scope = scope
         expr_scope = scope.create_child()
 
-        expr_scope.define_variable(node.var, UnknowType(), is_param=True)
+        expr_scope.define_variable(node.var, UnknowType(), is_param=True, row=node.row, column=node.column)
 
         self.visit(node.iterable, scope.create_child())
         self.visit(node.expression, expr_scope)
@@ -208,9 +208,9 @@ class VarCollector:
     @visitor.when(VectorComprehensionNode)
     def visit(self, node: VectorComprehensionNode, scope: Scope):
         node.scope = scope
-
+        node.scope.define_variable(node.var, UnknowType(), is_param=False, row=node.row, column=node.row)
         selector_scope = scope.create_child()
-        selector_scope.define_variable(node.var, UnknowType(), is_param=True)
+        selector_scope.define_variable(node.var, UnknowType(), is_param=True, row=node.row, column=node.row)
         self.visit(node.selector, selector_scope)
 
         self.visit(node.iterable, scope.create_child())

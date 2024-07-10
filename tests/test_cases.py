@@ -6,11 +6,14 @@ input0 = '''
         getX() => self.x;
         getY() => self.y;
                 
-        setX(x) : Number => self.x := x
+        setX(x) : Number => self.x := x;
         setY(y) : String => self.y := y;
     }
 
-    let pt : PolarPoint = new Point() in print(pt.getX())
+    let pt  = new Point(), vector = [3,4,"feo"] in {
+        print(pt.getX());
+        let squares = [z^2 || z in range(1,10)] in print(squares);
+        }
 '''
 input1 = "let number = 42 in let text = \"The meaning of life is\" in print(text @ number);"
   
@@ -167,6 +170,25 @@ input15 = '''
             let x = iterable.current() in
                 print(x);
 '''
+input16 = '''
+    type Point (a : Number, b : Number){      
+        x = a;
+        y = b;
+
+        getX() => self.x;
+        getY() => self.y;
+    }
+    type PolarPoint(x : Number,y : Number,z : Number) inherits Point(x+y, y+z){
+        a = x;
+        
+        rho() => self.a;
+        
+    }
+    let pt = new PolarPoint(3,4,5) in {
+        print(pt.rho());
+        print(pt.getX());
+    } 
+'''
 
 test_cases = [
     input0,
@@ -175,7 +197,7 @@ test_cases = [
     input7, input8, 
     input9, input10, 
     input11, input12, input13,
-    input14 ,input15,
+    input14 ,input15,input16
 ]
 # function tan(x: Number): Number => sin(x) / cos(x);
 

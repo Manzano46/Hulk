@@ -10,8 +10,8 @@ class Node:
         raise NotImplementedError()
         
 class AtomicNode(Node):
-    def __init__(self, lex):
-        self.lex = lex
+    def __init__(self, token):
+        self.lex = token.lex
 
 class UnaryNode(Node):
     def __init__(self, node):
