@@ -313,7 +313,7 @@ class HulkInterpreter:
         left = self.visit(node.left)
         right = self.visit(node.right)
         
-        return left + right
+        return str(left) + str(right)
     
     @visitor.when(TypeInstantiationNode)
     def visit(self, node: TypeInstantiationNode):
@@ -328,36 +328,30 @@ class HulkInterpreter:
 
         while parent:
             scope = parent.scope.children[0]
+            # print(str(scope)[:100])
 
             for i, v in enumerate(parent.params):
                 var = scope.define_variable(v.lex, type__.param_vars[i].type)
                 var.value = args_[i]
-                print(v.lex,var.value)
+                # print(v.lex,var.value)
             
 
             for attr, expr in parent.attributes:
                 value = self.visit(expr.expr)
-                print(attr,value)
-                obj[attr] = value
-
-            # for method in parent.methods:
-            #     method: MethodDeclarationNode
-
-            #     scope.define_function(method.identifier, method.param_ids, method.param_types, method.type,body=method.expression,
-            #     )
-
-            # if len(parent.type_parent_args) > 0:
-            #     args = [self.visit(arg) for arg in parent.type_parent_args]
+                # print(attr,value)
+                if not attr in obj:
+                    obj[attr] = value
 
             
             if parent.parent:
                 type__ = self.context.get_type(parent.parent)
-                print(type__)
+                # print(type__.name)
                 args_ = [self.visit(arg) for arg in type_node.parent_args]
                 type_node = parent
                 parent: TypeDeclarationNode = copy.deepcopy(type__.curr_node)
-                parent.scope = scope  
-                print('='*100)
+                parent.scope.parent = scope
+                # print(str(scope)[:100])  
+                # print('='*100)
 
             else:
                 break
@@ -368,13 +362,13 @@ class HulkInterpreter:
         # print('buscando ', node.obj.lex)
         obj = node.scope.find_variable(node.obj.lex)
         obj_meth = obj.type.get_method(node.method)
-        print('buscando metodo ', node.method)
+        # print('buscando metodo ', node.method)
         sself = node.scope.define_variable('self', obj.type)
         sself.value = obj.value
-        print(obj.value)
+        # print(obj.value)
 
         method = obj_meth.curr_node
-        print('este es el scope pre metodo ', node.scope)
+        # print('este es el scope pre metodo ', node.scope)
         method.scope.parent = node.scope
 
         # object_instance: TypeDeclarationNode = node.scope.get_global_variable_info(

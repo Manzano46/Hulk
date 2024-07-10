@@ -1,6 +1,7 @@
 import cmp.visitor as visitor
 from cmp.semantic import SemanticError, Context, ErrorType, Scope, UnknowType
 from engine.language.ast_nodes import *
+import math
 
 class VarCollector:
     def __init__(self, context: Context, errors = []):
@@ -17,6 +18,11 @@ class VarCollector:
         scope = Scope()
         # print("VarCollector Visitor")
         node.scope = scope
+        PI = node.scope.define_variable('PI', NumberType())
+        PI.value =  math.pi
+
+        E = node.scope.define_variable('E', NumberType())
+        E.value =  math.e
 
         for declaration in node.declarations:
             self.visit(declaration, scope.create_child())

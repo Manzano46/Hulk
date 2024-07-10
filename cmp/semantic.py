@@ -577,7 +577,7 @@ class VariableInfo:
 
 class Scope:
     def __init__(self, parent = None):
-        self.locals: list[VariableInfo] = [VariableInfo(name='PI', vtype= NumberType()), VariableInfo(name='E', vtype=NumberType())]
+        self.locals: list[VariableInfo] = []
         self.parent: Scope = parent
         self.children: list[Scope] = []
         self.index = 0 if parent is None else len(parent)
@@ -608,7 +608,6 @@ class Scope:
         return x
 
     def find_variable(self, vname, index=None):
-        # print("buscando variable ",vname )
         locals = self.locals if index is None else itt.islice(self.locals, index)
         try:
             return next(x for x in locals if x.name == vname)
