@@ -46,12 +46,13 @@ class Attribute:
         return errors
 
 class Method:
-    def __init__(self, name, param_names, params_types, return_type):
+    def __init__(self, name, param_names, params_types, return_type, curr_node = None):
         self.name = name
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
         self.param_vars = []
+        self.curr_node = curr_node
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -114,11 +115,11 @@ class Protocol:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
             
-    def define_method(self, name:str, param_names:list, param_types:list, return_type):
+    def define_method(self, name:str, param_names:list, param_types:list, return_type, curr_node= None):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
 
-        method = Method(name, param_names, param_types, return_type)
+        method = Method(name, param_names, param_types, return_type, curr_node)
         self.methods.append(method)
         return method
     
@@ -235,11 +236,11 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
 
-    def define_method(self, name:str, param_names:list, param_types:list, return_type):
+    def define_method(self, name:str, param_names:list, param_types:list, return_type, curr_node=None):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
 
-        method = Method(name, param_names, param_types, return_type)
+        method = Method(name, param_names, param_types, return_type, curr_node)
         self.methods.append(method)
         return method
 
@@ -420,10 +421,10 @@ class Context:
         self.children = []
         self.functions = {}
 
-    def create_type(self, name:str) -> Type:
+    def create_type(self, name:str, curr_node=None) -> Type:
         if name in self.types:
             raise SemanticError.INVALID_NAME%('type', name)
-        typex = self.types[name] = Type(name)
+        typex = self.types[name] = Type(name, curr_node)
         return typex
 
     def get_type(self, name:str) -> Type:
@@ -570,7 +571,9 @@ class VariableInfo:
             )
 
         return errors
-
+    
+    def update_value(self, val):
+        self.value =  val
 
 class Scope:
     def __init__(self, parent = None):

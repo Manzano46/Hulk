@@ -6,11 +6,15 @@ input0 = '''
         getX() => self.x;
         getY() => self.y;
         
-        setX(x) : Number => self.x := x;
-        setY(y) : String => self.y := y;
+        setX(x: Number) : Number => self.x := x;
+        setY(y: String) : String => self.y := y;
     }
 
-    let pt : PolarPoint = new Point() in print(pt.getX())
+    let pt = new Point() in {
+        print(pt.getX());
+        pt.setX(5);
+        print(pt.getX());
+    } 
 '''
 input1 = "let number = 42 in let text = \"The meaning of life is\" in print(text @ number);"
   
@@ -115,8 +119,9 @@ input9 =  '''
     function tan(x: Number): Number => sin(x) / cos(x);
     function gcd(a, b) => while (a > 0)
         let m = a % b in {
-            b := a;
-            a := m;
+            a := b;
+            b := m;
+            a;
         };
     print(gcd(4,5));
 '''
@@ -145,7 +150,10 @@ input12 = '''
         rho() => self.a;
         
     }
-    1
+    let pt = new PolarPoint() in {
+        print(pt.rho());
+        print(pt.getX());
+    } 
 '''
 
 input13 = '''
@@ -156,7 +164,7 @@ input13 = '''
 '''
 input14 = '''
     function fib(n) {
-        if (n==0 | n==1) 1 else fib(n-1) + fib(n-2);
+        if (n < 2) 1 else fib(n-1) + fib(n-2);
     }
     let x = fib(5) in print(x);
 '''
