@@ -321,23 +321,24 @@ class HulkInterpreter:
         type_ = self.context.get_type(node.idx)
         type__ = type_
         type_node: TypeDeclarationNode = copy.deepcopy(type_.curr_node)
-        obj = {"type": type_node}
+        obj = {"type": type_}
 
         args_ = [self.visit(i) for i in node.args]
         parent = type_node
 
         while parent:
-            scope = parent.scope
-            
-            for i, vname in enumerate(parent.params):
-                var = scope.define_variable(vname, type__.param_vars[i].type)
+            scope = parent.scope.children[0]
+
+            for i, v in enumerate(parent.params):
+                var = scope.define_variable(v.lex, type__.param_vars[i].type)
                 var.value = args_[i]
+                print(v.lex,var.value)
+            
 
             for attr, expr in parent.attributes:
-                # var = scope.define_variable(f"self.{attr.identifier}", None)
                 value = self.visit(expr.expr)
+                print(attr,value)
                 obj[attr] = value
-                # var.value = value
 
             # for method in parent.methods:
             #     method: MethodDeclarationNode
@@ -350,21 +351,14 @@ class HulkInterpreter:
 
             
             if parent.parent:
-                oldChild = parent
                 type__ = self.context.get_type(parent.parent)
+                print(type__)
+                args_ = [self.visit(arg) for arg in type_node.parent_args]
+                type_node = parent
                 parent: TypeDeclarationNode = copy.deepcopy(type__.curr_node)
-                scope.parent = parent.scope  
+                parent.scope = scope  
+                print('='*100)
 
-                # for p_method in parent.methods:
-                #     for c_method in oldChild.methods:
-                #         if p_method.identifier == c_method.identifier:
-                #             c_method.scope.define_function(
-                #                 fname="base",
-                #                 param_names=p_method.param_ids,
-                #                 param_types=p_method.param_types,
-                #                 return_type=p_method.type,
-                #                 body=p_method.expression,
-                #             )
             else:
                 break
         return obj
@@ -374,11 +368,13 @@ class HulkInterpreter:
         # print('buscando ', node.obj.lex)
         obj = node.scope.find_variable(node.obj.lex)
         obj_meth = obj.type.get_method(node.method)
-        # print('buscando metodo ', node.method)
+        print('buscando metodo ', node.method)
         sself = node.scope.define_variable('self', obj.type)
         sself.value = obj.value
+        print(obj.value)
 
         method = obj_meth.curr_node
+        print('este es el scope pre metodo ', node.scope)
         method.scope.parent = node.scope
 
         # object_instance: TypeDeclarationNode = node.scope.get_global_variable_info(
