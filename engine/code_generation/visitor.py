@@ -333,10 +333,15 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         #print('functionCall')
         if node.idx == 'print':
             self.register_instruction(cil.PrintNode(self.visit(node.args[0])))
+            return VoidType()
         else:
             for arg in node.args:
                 value = self.visit(arg)
                 self.register_function(cil.ArgNode(value))
+            var = self.define_internal_local()
+            self.register_instruction(cil.StaticCallNode(node.idx,  var))
+            return var    
+            
         
     @visitor.when(ConcatNode)
     def visit(self, node : ConcatNode):
@@ -495,3 +500,42 @@ class HulkToCILVisitor(BaseHulkToCILVisitor):
         
         self.register_instruction(cil.AssignNode(var, value))
         return var
+    
+    @visitor.when(FunctionDeclarationNode)
+    def visit(self, node : FunctionDeclarationNode):
+        ######################################################
+        # node.id -> string
+        # node.param -> [VariableNode ...]
+        # node.expr -> ExpressionNode
+        # node.return_type -> Type
+        ######################################################
+        
+        parent = self.current_function
+        
+        self.current_function = self.register_function(node.id, node.type)
+        
+        for param in node.params:
+            var = node.scope.find_variable(param.lex)
+            self.register_param(var)
+        
+        expr = self.visit(node.expr)
+        self.register_instruction(cil.ReturnNode(expr))
+        
+        self.current_function = parent
+        
+    @visitor.when(TypeInstantiationNode)
+    def visit(self, node : TypeInstantiationNode):
+        ######################################################
+        # node.idx -> string
+        # node.args -> [ExpressionNode ...]
+        ######################################################
+        
+        var = self.define_internal_local()
+        type_ = None
+        for x in self.dottypes:
+            if x.name == node.idx:
+                type_ = x
+        self.register_instruction(cil.AllocateNode(type_, var))
+        return var
+    
+    
